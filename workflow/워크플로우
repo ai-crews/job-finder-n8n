@@ -107,7 +107,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        1216,
+        1184,
         848
       ],
       "id": "e39a5bcf-52ae-4a92-a4ae-3a6000f32438",
@@ -246,14 +246,15 @@
     },
     {
       "parameters": {
-        "content": "## 데이터 집계\n\n사용자에게 발송할 최종 결과물\n매칭 성공 vs 실패 케이스 정의 (인프라 개발팀 주도)",
+        "content": "## 데이터 집계 -> 할 필요 없음\n\n사용자에게 발송할 최종 결과물\n매칭 성공 vs 실패 케이스 정의 (인프라 개발팀 주도)",
         "height": 432,
-        "width": 416
+        "width": 416,
+        "color": 7
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1840,
-        464
+        448
       ],
       "typeVersion": 1,
       "id": "fd146801-e2b2-41f3-a0ca-74b702a17092",
@@ -276,7 +277,7 @@
     },
     {
       "parameters": {
-        "content": "## 맞춤공고 발송 (DRI)\n\n같이도 필요\n메일 발송 분리 (email만 발송하는 경우 분기 필요)\n후처리 어떻게 할건지 (후처리로직)\n> 보내지기 전에 룰로 개입하고\n> 결과 확인하고, 집계테이블이 필요하다\n- 사람 개입 힘듦\n\n메일 안보내지면 어떻게 할건지",
+        "content": "## 맞춤공고 발송 (DRI)\n\n같이도 필요\n메일 발송 분리 (email만 발송하는 경우 분기 필요)\n\n후처리 어떻게 할건지 (후처리로직) -> 후처리 필요없음\n> 보내지기 전에 룰로 개입하고\n> 결과 확인하고, 집계테이블이 필요하다\n- 사람 개입 힘듦\n\n메일 안보내지면 어떻게 할건지",
         "height": 752,
         "width": 592
       },
@@ -443,8 +444,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        416,
-        48
+        448,
+        112
       ],
       "typeVersion": 1,
       "id": "128122d6-e053-4307-8f68-91e2bcc4ef36",
@@ -452,15 +453,15 @@
     },
     {
       "parameters": {
-        "content": "# 박예나, 황인성",
-        "height": 80,
-        "width": 256,
+        "content": "# 박예나, 황인성, 김주은, 이수진\n김주은 - DRI",
+        "height": 96,
+        "width": 480,
         "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1200,
-        256
+        1104,
+        240
       ],
       "typeVersion": 1,
       "id": "d2c070f8-3c46-4db3-85bb-0ffdcde3b621",
@@ -647,6 +648,19 @@
       ],
       "id": "823600a5-67f7-4199-b450-3eeec84effad",
       "name": "(정제된)채용공고 가져오기"
+    },
+    {
+      "parameters": {
+        "content": "## CTR\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2912,
+        960
+      ],
+      "typeVersion": 1,
+      "id": "37ce9f8b-03e7-4b3f-aeb7-ae123574a463",
+      "name": "Sticky Note19"
     }
   ],
   "pinData": {},
@@ -832,7 +846,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "921f718e-fb2a-4cad-81c3-b59f8c27ef9b",
+  "versionId": "2f60bc42-61d2-4b53-aa8f-c5d3df4e2660",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "73beb51227076257a518115ccd84a77fdd6203dc7bdeaa4e78ecb7f33b67bde9"
