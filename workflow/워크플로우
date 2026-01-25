@@ -1,5 +1,5 @@
 {
-  "name": "워크플로우 회의",
+  "name": "워크플로우",
   "nodes": [
     {
       "parameters": {
@@ -10,7 +10,7 @@
           "systemMessage": "You are an expert at answering emails. You need to answer them professionally based on the information you have. This is a business email. Be concise and never exceed 100 words. Only the body of the email, not create the subject"
         }
       },
-      "id": "20729fd3-17ab-4be6-8e54-33d1a63ae93a",
+      "id": "feccdfb6-b3cf-44fa-a6b6-60a7558f2f19",
       "name": "Write email",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
@@ -25,7 +25,7 @@
         "height": 624,
         "width": 372
       },
-      "id": "11cfeaaf-447c-444e-8e79-5a67f5bf5e29",
+      "id": "c8ca76f2-16b2-4a7a-b2ac-05daa401f9e8",
       "name": "Sticky Note5",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
@@ -33,72 +33,6 @@
         368
       ],
       "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "operation": "sendAndWait",
-        "fromEmail": "choijihye295@gmail.com",
-        "toEmail": "choijihye295@gmail.com",
-        "subject": "=[검토필요] {{ $('지원자 로드').item.json['성함 '] }} 님 매칭공고 발송 승인 요청",
-        "message": "=<h3>AI 분석 결과 (부적합/검토 필요)</h3>\n<p>AI가 부적합하다고 판단한 공고들입니다. 직접 검토 후 발송 여부를 결정해주세요.</p>\n<hr>\n{{ $json.data.map(item => item.output).join('<br><br>------------------<br><br>') }}",
-        "approvalOptions": {
-          "values": {
-            "approvalType": "double",
-            "approveLabel": "승인 및 발송",
-            "disapproveLabel": "반려 (무시)"
-          }
-        },
-        "options": {}
-      },
-      "id": "69487b86-b17c-4962-abef-a9336ca974ee",
-      "name": "Approve Email",
-      "type": "n8n-nodes-base.emailSend",
-      "position": [
-        2336,
-        640
-      ],
-      "webhookId": "a96c4b0a-3c96-45f8-a34c-194683eb2f1f",
-      "typeVersion": 2.1,
-      "credentials": {
-        "smtp": {
-          "id": "1V8kUxXVLVneElAd",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "version": 2,
-            "leftValue": "",
-            "caseSensitive": true,
-            "typeValidation": "strict"
-          },
-          "combinator": "and",
-          "conditions": [
-            {
-              "id": "62e26bc5-1732-4699-a602-99490c7406fd",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.data.approved }}",
-              "rightValue": ""
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "953c7cbf-4c98-47ae-a457-239b56516d15",
-      "name": "Approved?",
-      "type": "n8n-nodes-base.if",
-      "position": [
-        2480,
-        640
-      ],
-      "typeVersion": 2.2
     },
     {
       "parameters": {
@@ -110,7 +44,7 @@
         1184,
         848
       ],
-      "id": "e39a5bcf-52ae-4a92-a4ae-3a6000f32438",
+      "id": "a3a78f74-ea2f-4281-9ad6-8293e39e3fae",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -121,64 +55,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "ce02895e-1902-43a5-99a0-bbbb6aa7f30c",
-              "leftValue": "={{ $json.output }}",
-              "rightValue": "일치하지 않습니다",
-              "operator": {
-                "type": "string",
-                "operation": "notContains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        1872,
-        672
-      ],
-      "id": "0469d9b5-c8b0-4bb2-a5b6-4c2ac1aa1eb4",
-      "name": "If",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $('지원자 로드').item.json['이메일 주소'] }}",
-        "subject": "=[공고추천]{{ $('지원자 로드').item.json['성함 '] }} 님, 맞춤형 채용공고를 확인해보세요!",
-        "emailType": "text",
-        "message": "={{ $('지원자 로드').item.json['성함 '] }} 님의 선호 직무와 연관된 채용공고가 없습니다. \n\n\n더 많은 채용공고는 아래 링크로 확인해주세요!\n\n\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
-      "position": [
-        2624,
-        800
-      ],
-      "id": "2a21424e-edc8-4dfe-bc5c-37b298ebbda5",
-      "name": "채용공고 없음",
-      "webhookId": "38a090b8-9b04-4b5c-86d6-7c4661e43c44",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "bdAIlEFnDLl7iHbl",
-          "name": "Gmail account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "sendTo": "={{ $('지원자 로드').item.json['이메일 주소'] }}",
         "subject": "=[공고추천]{{ $('지원자 로드').item.json['성함 '] }} 님, 맞춤형 채용공고를 확인해보세요!",
         "emailType": "text",
@@ -188,36 +64,12 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2672,
-        592
+        2160,
+        640
       ],
-      "id": "46d17b96-d39e-4410-a760-04500647a773",
-      "name": "채용공고 발송",
-      "webhookId": "01aab42f-0538-4122-b22e-29201f3437ab",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "bdAIlEFnDLl7iHbl",
-          "name": "Gmail account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $('지원자 로드').item.json['이메일 주소'] }}",
-        "subject": "=[공고추천]{{ $('지원자 로드').item.json['성함 '] }} 님, 맞춤형 채용공고를 확인해보세요!",
-        "emailType": "text",
-        "message": "={{ $('지원자 로드').item.json['성함 '] }} 님의 선호 직무와 연관된 채용공고입니다!\n\n\n{{ $json.data.map(item => item.output).join('\\n\\n---\\n\\n') }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
-      "position": [
-        2624,
-        400
-      ],
-      "id": "6583b965-1936-4a9f-94dc-89d63956bd6c",
+      "id": "3ddc80eb-5cc6-46a5-b1ef-203182a7b4fa",
       "name": "채용공고 발송1",
-      "webhookId": "1ccff48e-7cfb-4493-a323-4fb0df626a4d",
+      "webhookId": "304a3bb7-c56a-4f6c-8cef-11f6822b0445",
       "credentials": {
         "gmailOAuth2": {
           "id": "bdAIlEFnDLl7iHbl",
@@ -241,24 +93,8 @@
         -272,
         592
       ],
-      "id": "77dc2754-7f11-41d1-b162-a83757a125f7",
+      "id": "7111e2e1-858a-41ab-918b-b4739f1fa7ba",
       "name": "트리거노드"
-    },
-    {
-      "parameters": {
-        "content": "## 데이터 집계 -> 할 필요 없음\n\n사용자에게 발송할 최종 결과물\n매칭 성공 vs 실패 케이스 정의 (인프라 개발팀 주도)",
-        "height": 432,
-        "width": 416,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1840,
-        448
-      ],
-      "typeVersion": 1,
-      "id": "fd146801-e2b2-41f3-a0ca-74b702a17092",
-      "name": "Sticky Note"
     },
     {
       "parameters": {
@@ -272,22 +108,22 @@
         224
       ],
       "typeVersion": 1,
-      "id": "d525008b-a392-4487-a5fc-c79a04a49a2a",
+      "id": "e7825b8c-27a0-4b87-8d1f-89ec1271a99a",
       "name": "Sticky Note1"
     },
     {
       "parameters": {
-        "content": "## 맞춤공고 발송 (DRI)\n\n같이도 필요\n메일 발송 분리 (email만 발송하는 경우 분기 필요)\n\n후처리 어떻게 할건지 (후처리로직) -> 후처리 필요없음\n> 보내지기 전에 룰로 개입하고\n> 결과 확인하고, 집계테이블이 필요하다\n- 사람 개입 힘듦\n\n메일 안보내지면 어떻게 할건지",
-        "height": 752,
+        "content": "## 맞춤공고 발송 (DRI)\n\n메일 전송 후 기록 필요\n추천로직 결과 믿고 그대로 전송",
+        "height": 336,
         "width": 592
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2288,
-        240
+        2000,
+        496
       ],
       "typeVersion": 1,
-      "id": "b18427ab-2c36-422b-8ea6-04e6b6376f32",
+      "id": "4ad6243a-b7bf-4047-b952-4d43e7dfc1db",
       "name": "Sticky Note2"
     },
     {
@@ -296,11 +132,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2912,
-        560
+        2656,
+        544
       ],
       "typeVersion": 1,
-      "id": "6960c382-5d48-4f82-8e07-a4349ccdf7f7",
+      "id": "1706a40b-23ae-459e-997b-2775efcbbeca",
       "name": "Sticky Note3"
     },
     {
@@ -309,11 +145,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2912,
-        752
+        2656,
+        736
       ],
       "typeVersion": 1,
-      "id": "0155e514-c58a-4c5f-8af2-0c745878e16b",
+      "id": "b7b6f07c-1423-4ba3-a202-4fd63161c11b",
       "name": "Sticky Note4"
     },
     {
@@ -328,40 +164,8 @@
         352
       ],
       "typeVersion": 1,
-      "id": "851b8202-6ede-452f-a5ed-f34d67b2da63",
+      "id": "8f500c4c-f199-4a42-803b-ca1cebe0e6ca",
       "name": "Sticky Note6"
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "include": "specifiedFields",
-        "fieldsToInclude": "output",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        2048,
-        736
-      ],
-      "id": "025cbe22-6034-45d6-b1c7-f67dbd5e15ed",
-      "name": "매칭 실패"
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "include": "specifiedFields",
-        "fieldsToInclude": "output",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        2048,
-        592
-      ],
-      "id": "73a5b600-fc71-4dff-9c63-5f2aa2d00de7",
-      "name": "매칭 성공"
     },
     {
       "parameters": {
@@ -375,7 +179,7 @@
         496
       ],
       "typeVersion": 1,
-      "id": "4426cfa6-fd8a-42e0-a4b5-6e4bb1c11f45",
+      "id": "92dee78e-b426-4668-b29c-4d51a8b2e8ee",
       "name": "Sticky Note7"
     },
     {
@@ -386,11 +190,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1920,
+        1984,
         1120
       ],
       "typeVersion": 1,
-      "id": "28b43804-8d8b-4f89-8523-9c8d9e61c1a0",
+      "id": "7fc14690-6e4c-4c07-b806-32b8ff88e2cb",
       "name": "Sticky Note8"
     },
     {
@@ -404,7 +208,7 @@
         1328
       ],
       "typeVersion": 1,
-      "id": "1710ab78-ce69-4d0f-be0c-66533dc0be50",
+      "id": "85bc2f2b-20cc-480b-a468-8803423b54bb",
       "name": "Sticky Note9"
     },
     {
@@ -417,7 +221,7 @@
         1120
       ],
       "typeVersion": 1,
-      "id": "5714b287-9ddd-4d1d-9c5f-08192401965f",
+      "id": "0fc2bc90-a5cc-40ab-9b8e-cea9fbdbb80d",
       "name": "Sticky Note10"
     },
     {
@@ -432,12 +236,12 @@
         1056
       ],
       "typeVersion": 1,
-      "id": "34a7df7e-dfc4-4c17-b1eb-aa24ff631fed",
+      "id": "c1ad6c3e-8aa0-441a-9511-b494289565d6",
       "name": "Sticky Note11"
     },
     {
       "parameters": {
-        "content": "# 이혜주, 허수영",
+        "content": "# 이혜주",
         "height": 80,
         "width": 256,
         "color": 3
@@ -448,23 +252,23 @@
         112
       ],
       "typeVersion": 1,
-      "id": "128122d6-e053-4307-8f68-91e2bcc4ef36",
+      "id": "97736a4b-0628-4ce0-a661-975b9bc9c3e7",
       "name": "Sticky Note12"
     },
     {
       "parameters": {
-        "content": "# 박예나, 황인성, 김주은, 이수진\n김주은 - DRI",
+        "content": "# 황인성, 김주은\n김주은 - DRI",
         "height": 96,
-        "width": 480,
+        "width": 288,
         "color": 3
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1104,
-        240
+        1200,
+        256
       ],
       "typeVersion": 1,
-      "id": "d2c070f8-3c46-4db3-85bb-0ffdcde3b621",
+      "id": "20dc4996-387c-4430-a9d9-8075f2b726a4",
       "name": "Sticky Note13"
     },
     {
@@ -476,11 +280,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2416,
-        112
+        2112,
+        368
       ],
       "typeVersion": 1,
-      "id": "85040e07-14ac-4633-b134-a8e19a66d6c2",
+      "id": "ef679f81-e1cd-4c71-a1c8-9c1b82238675",
       "name": "Sticky Note14"
     },
     {
@@ -496,12 +300,12 @@
         704
       ],
       "typeVersion": 1,
-      "id": "a924e8b3-b849-4bd3-81cf-14a80c323af6",
+      "id": "ef970450-5162-47c9-ac5c-4c807f06e248",
       "name": "Sticky Note15"
     },
     {
       "parameters": {
-        "content": "output : ? 표형태\n채용공고 결과가 1~5순위? 결과가 나옴\n(개수제한 미정)\n",
+        "content": "output :\n채용공고 결과가 1~5순위 결과가 나옴\n(개수제한 미정)\n사용자이름 | 채용공고명 | 추천스코어",
         "width": 262,
         "color": 3
       },
@@ -511,7 +315,7 @@
         656
       ],
       "typeVersion": 1,
-      "id": "a5404362-2146-46b4-a981-e708fc688161",
+      "id": "a88511bb-ac3e-4a30-9c7e-b7fe32e013e5",
       "name": "Sticky Note16"
     },
     {
@@ -521,11 +325,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2976,
-        1168
+        2656,
+        1136
       ],
       "typeVersion": 1,
-      "id": "7995e506-9b74-4646-b85c-eb929c196631",
+      "id": "8846c718-ea78-42bf-a4fb-0d845978153d",
       "name": "Sticky Note17"
     },
     {
@@ -552,7 +356,7 @@
         864,
         672
       ],
-      "id": "d634d266-3d45-4cea-ab3f-6084e08a8e33",
+      "id": "d43d89c6-46f9-4098-9f06-694b9cf5ca18",
       "name": "지원자 로드",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -592,7 +396,7 @@
         -64,
         752
       ],
-      "id": "2496e592-c559-45c6-9705-5d27b8a9fb92",
+      "id": "dadbdca9-07d2-4463-9f82-f91fc6df4fcf",
       "name": "채용공고 크롤링 필요?"
     },
     {
@@ -606,7 +410,7 @@
         128,
         736
       ],
-      "id": "c2284b01-120a-4458-86f5-dbdb91c5c792",
+      "id": "8734c8cc-fdca-4a06-bd20-565831e813db",
       "name": "채용공고 크롤링"
     },
     {
@@ -620,7 +424,7 @@
         272,
         736
       ],
-      "id": "236626f9-7556-4592-b9e2-5696aaab239c",
+      "id": "62837bea-7fbf-4e10-8208-58d9b4c92080",
       "name": "크롤링 확인"
     },
     {
@@ -633,7 +437,7 @@
         496,
         736
       ],
-      "id": "ce4a7ba3-9630-43eb-b5e5-bcc6a4355164",
+      "id": "ac8af586-e3a6-4aa9-af70-d2fb507e32e6",
       "name": "채용공고 정제1"
     },
     {
@@ -646,7 +450,7 @@
         272,
         912
       ],
-      "id": "823600a5-67f7-4199-b450-3eeec84effad",
+      "id": "956d28a1-ed9e-4130-9250-283f2a240b63",
       "name": "(정제된)채용공고 가져오기"
     },
     {
@@ -655,50 +459,37 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2912,
-        960
+        2656,
+        928
       ],
       "typeVersion": 1,
-      "id": "37ce9f8b-03e7-4b3f-aeb7-ae123574a463",
+      "id": "b2377e18-8ad3-40d0-abf8-51e855677e62",
       "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "content": "## DE팀과 논의 필요\nAPI 활용할 계획",
+        "height": 176,
+        "width": 304,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        192,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "5594d5e2-57f5-4bee-9daa-eb0b90e4f9a1",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
   "connections": {
-    "Approved?": {
-      "main": [
-        [
-          {
-            "node": "채용공고 발송",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "채용공고 없음",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Write email": {
       "main": [
         [
           {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Approve Email": {
-      "main": [
-        [
-          {
-            "node": "Approved?",
+            "node": "채용공고 발송1",
             "type": "main",
             "index": 0
           }
@@ -716,51 +507,11 @@
         ]
       ]
     },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "매칭 성공",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "매칭 실패",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "트리거노드": {
       "main": [
         [
           {
             "node": "채용공고 크롤링 필요?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "매칭 실패": {
-      "main": [
-        [
-          {
-            "node": "Approve Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "매칭 성공": {
-      "main": [
-        [
-          {
-            "node": "채용공고 발송1",
             "type": "main",
             "index": 0
           }
@@ -846,11 +597,11 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "2f60bc42-61d2-4b53-aa8f-c5d3df4e2660",
+  "versionId": "f5dc63e5-9f7e-4c51-b6ea-680bb99e4666",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "73beb51227076257a518115ccd84a77fdd6203dc7bdeaa4e78ecb7f33b67bde9"
   },
-  "id": "FHgBHf5j3GfewzwT",
+  "id": "5P7KIPBdZbZ5Wqy9",
   "tags": []
 }
