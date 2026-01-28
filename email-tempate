@@ -1,0 +1,123 @@
+const matchedData = $input.all();
+
+// 1. 오늘 날짜 생성 (YYYY.MM.DD 형식)
+const now = new Date();
+const todayStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+function generateJobCard(jobMatch) {
+  const job = jobMatch.job || jobMatch;
+  const isPreferred = jobMatch.is_preferred_company;
+  const starMark = isPreferred ? "⭐ " : "";
+  
+  const companyName = job.company_name || "기업명 미상";
+  const jobTitle = job.job_title || job.position_name || "모집공고 참조";
+  const processedPosition = job.processed_position_name || "직무 미분류";
+  const employmentType = job.employment_type || "확인불가";
+  const deadline = job.deadline || job.application_deadline_date || "상시채용";
+  const applyUrl = job.application_link || "#";
+  const logoUrl = job.logo_url || "";
+
+  return `
+<table width="100%" style="border:1px solid #e1e4e8; background:#ffffff; margin-bottom:20px; border-radius:12px; border-collapse:separate;" cellpadding="0" cellspacing="0">
+  <tr><td style="padding:20px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="80" valign="top" style="padding-right:15px;">
+          ${logoUrl ? `<img src="${logoUrl}" width="80" style="border-radius:8px; border:1px solid #eee;">` : 
+          `<div style="width:80px; height:80px; background:#f0f2f5; border-radius:8px; text-align:center; line-height:80px; font-size:12px; color:#999; border:1px solid #eee;">LOGO</div>`}
+        </td>
+        <td valign="top">
+          <div style="font-weight:bold; font-size:16px; color:#333; margin-bottom:8px;">${starMark}${companyName}</div>
+          <table width="100%" style="font-size:14px; line-height:1.6; color:#555;">
+            <tr><td width="70" style="color:#888;"><b>모집부문</b></td><td>${jobTitle}</td></tr>
+            <tr><td style="color:#888;"><b>직무명</b></td><td>${processedPosition}</td></tr>
+            <tr><td style="color:#888;"><b>고용형태</b></td><td><span style="background:#e6f7ed; color:#2c8a3c; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;">${employmentType}</span></td></tr>
+            <tr><td style="color:#888;"><b>접수마감</b></td><td>${deadline} <span style="color:#d93025; font-weight:bold;">(D-Day)</span></td></tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <a href="${applyUrl}" target="_blank" style="display:block; background:#f8f9fa; border:1px solid #dee2e6; padding:12px; text-align:center; text-decoration:none; color:#495057; border-radius:8px; margin-top:15px; font-weight:bold; font-size:14px;">바로가기</a>
+  </td></tr>
+</table>`;
+}
+
+const results = [];
+
+for (const item of matchedData) {
+  const userData = item.json;
+  const userName = userData.user_name || "구독자";
+  const matchedJobs = userData.filtered_jobs || userData.matched_jobs || [];
+  const jobCardsHtml = matchedJobs.slice(0, 10).map(j => generateJobCard(j)).join("\n");
+  
+  const fullHtml = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0; padding:0; background-color:#f4f7f6; font-family:'Apple SD Gothic Neo', sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7f6; padding:20px 0;">
+    <tr><td>
+      <table width="600" style="background:#ffffff; margin:0 auto; border-radius:16px; overflow:hidden;" cellpadding="0" cellspacing="0">
+        <tr><td style="background:#2c8a3c; padding:30px 25px; color:#ffffff;">
+          <div style="font-size:24px; font-weight:bold; margin-bottom:8px;">🎯 1월 4주차 채용공고 도착!</div>
+          <div style="font-size:15px; opacity:0.9;">'바로가기'를 누르면 자세한 정보를 볼 수 있어요!</div>
+        </td></tr>
+        
+        <tr><td style="background:#fff9db; padding:12px 25px; border-bottom:1px solid #fff3bf;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="left" style="font-size:13px; color:#856404;">
+                ⚠️ <b>정확한 정보</b>는 회사 홈페이지를 통해 확인해 주세요.
+              </td>
+              <td align="right" style="font-size:12px; color:#adb5bd; font-family:Arial, sans-serif;">
+                ${todayStr}
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:30px 25px 10px 25px;">
+          <div style="font-size:17px; color:#333;"><b>${userName}님</b>에게 가장 적합한 채용공고</div>
+        </td></tr>
+
+        <tr><td style="padding:10px 25px;">${jobCardsHtml}</td></tr>
+
+        <tr><td style="padding:20px 25px;">
+          <table width="100%" style="background:#effaf3; border:1px solid #d3f9e8; border-radius:12px; text-align:center; padding:25px;">
+            <tr><td>
+              <div style="font-size:30px; margin-bottom:15px;">🤔</div>
+              <div style="font-size:18px; font-weight:bold; color:#333; margin-bottom:10px;">받아본 채용공고 어떠셨나요?</div>
+              <div style="font-size:14px; color:#666; line-height:1.6; margin-bottom:20px;">
+                여러분의 소중한 의견을 들려주세요!<br>Hoper 분들의 피드백을 반영하여 더 나은 서비스로 찾아뵙겠습니다.
+              </div>
+              <a href="#" style="display:inline-block; background:#333; color:#fff; padding:12px 25px; text-decoration:none; border-radius:8px; font-weight:bold; font-size:14px;">💌 피드백 하러가기</a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="background:#2c8a3c; padding:40px 25px; text-align:center; color:#ffffff;">
+          <div style="display:inline-block; border:2px solid #ffffff; border-radius:30px; padding:8px 25px; font-size:20px; font-weight:bold; margin-bottom:20px;">JOB FINDER</div>
+          <div style="font-size:14px; margin-bottom:15px; opacity:0.9;">당신의 성공적인 커리어를 응원합니다 🎸</div>
+          <div style="font-size:13px; margin-bottom:20px;">
+            <a href="#" style="color:#ffec99; text-decoration:none;">공식 페이지</a> | 
+            <a href="#" style="color:#ffec99; text-decoration:none;">구독정보 변경</a> | 
+            <a href="#" style="color:#ffec99; text-decoration:none;">FAQ</a>
+          </div>
+          <div style="font-size:12px; opacity:0.7; margin-bottom:15px;">수신거부 😭</div>
+          <div style="font-size:11px; opacity:0.5;">© 2026 JOB FINDER. All rights reserved.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  results.push({
+    json: {
+      to: userData.user_email,
+      subject: `[공고추천] ${userName}님, 맞춤형 채용공고를 확인해보세요!`,
+      html: fullHtml
+    }
+  });
+}
+
+return results;
