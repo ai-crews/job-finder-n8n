@@ -26,8 +26,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1744,
-        512
+        1536,
+        544
       ],
       "id": "4e8b9288-6701-4d9a-9094-10ba449a92f7",
       "name": "채용공고 발송1",
@@ -81,8 +81,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1424,
-        352
+        1216,
+        384
       ],
       "typeVersion": 1,
       "id": "b615f8e1-3b7e-4f9e-8947-b22551ebbac6",
@@ -90,12 +90,14 @@
     },
     {
       "parameters": {
-        "content": "## 발송 결과기록"
+        "content": "## 발송 결과기록\n\n구글 시트에 기록하고 있는데 DB로 할 생각도 있음.",
+        "height": 336,
+        "width": 464
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2080,
-        400
+        1840,
+        384
       ],
       "typeVersion": 1,
       "id": "0c07cf06-eb27-4b2c-95df-033480f5964f",
@@ -107,8 +109,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2080,
-        592
+        2112,
+        816
       ],
       "typeVersion": 1,
       "id": "15e4a058-2238-454b-9576-1b98a90948ab",
@@ -242,8 +244,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1536,
-        224
+        1328,
+        256
       ],
       "typeVersion": 1,
       "id": "9059ab53-2be5-486c-add4-8d10fa4b669c",
@@ -287,8 +289,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2080,
-        992
+        2112,
+        1216
       ],
       "typeVersion": 1,
       "id": "253d83f0-098e-4263-88df-bac0979d8538",
@@ -422,8 +424,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2080,
-        784
+        2112,
+        1008
       ],
       "typeVersion": 1,
       "id": "6d6b3105-2b95-4916-8c01-d2c1bf1e7457",
@@ -463,16 +465,483 @@
     },
     {
       "parameters": {
-        "jsCode": "const matchedData = $input.all();\n\n// 1. 오늘 날짜 생성 (YYYY.MM.DD 형식)\nconst now = new Date();\nconst todayStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;\n\nfunction generateJobCard(jobMatch) {\n  const job = jobMatch.job || jobMatch;\n  const isPreferred = jobMatch.is_preferred_company;\n  const starMark = isPreferred ? \"⭐ \" : \"\";\n  \n  const companyName = job.company_name || \"기업명 미상\";\n  const jobTitle = job.job_title || job.position_name || \"모집공고 참조\";\n  const processedPosition = job.processed_position_name || \"직무 미분류\";\n  const employmentType = job.employment_type || \"확인불가\";\n  const deadline = job.deadline || job.application_deadline_date || \"상시채용\";\n  const applyUrl = job.application_link || \"#\";\n  const logoUrl = job.logo_url || \"\";\n\n  return `\n<table width=\"100%\" style=\"border:1px solid #e1e4e8; background:#ffffff; margin-bottom:20px; border-radius:12px; border-collapse:separate;\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr><td style=\"padding:20px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n      <tr>\n        <td width=\"80\" valign=\"top\" style=\"padding-right:15px;\">\n          ${logoUrl ? `<img src=\"${logoUrl}\" width=\"80\" style=\"border-radius:8px; border:1px solid #eee;\">` : \n          `<div style=\"width:80px; height:80px; background:#f0f2f5; border-radius:8px; text-align:center; line-height:80px; font-size:12px; color:#999; border:1px solid #eee;\">LOGO</div>`}\n        </td>\n        <td valign=\"top\">\n          <div style=\"font-weight:bold; font-size:16px; color:#333; margin-bottom:8px;\">${starMark}${companyName}</div>\n          <table width=\"100%\" style=\"font-size:14px; line-height:1.6; color:#555;\">\n            <tr><td width=\"70\" style=\"color:#888;\"><b>모집부문</b></td><td>${jobTitle}</td></tr>\n            <tr><td style=\"color:#888;\"><b>직무명</b></td><td>${processedPosition}</td></tr>\n            <tr><td style=\"color:#888;\"><b>고용형태</b></td><td><span style=\"background:#e6f7ed; color:#2c8a3c; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;\">${employmentType}</span></td></tr>\n            <tr><td style=\"color:#888;\"><b>접수마감</b></td><td>${deadline} <span style=\"color:#d93025; font-weight:bold;\">(D-Day)</span></td></tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n    <a href=\"${applyUrl}\" target=\"_blank\" style=\"display:block; background:#f8f9fa; border:1px solid #dee2e6; padding:12px; text-align:center; text-decoration:none; color:#495057; border-radius:8px; margin-top:15px; font-weight:bold; font-size:14px;\">바로가기</a>\n  </td></tr>\n</table>`;\n}\n\nconst results = [];\n\nfor (const item of matchedData) {\n  const userData = item.json;\n  const userName = userData.user_name || \"구독자\";\n  const matchedJobs = userData.filtered_jobs || userData.matched_jobs || [];\n  const jobCardsHtml = matchedJobs.slice(0, 10).map(j => generateJobCard(j)).join(\"\\n\");\n  \n  const fullHtml = `\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0; padding:0; background-color:#f4f7f6; font-family:'Apple SD Gothic Neo', sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f7f6; padding:20px 0;\">\n    <tr><td>\n      <table width=\"600\" style=\"background:#ffffff; margin:0 auto; border-radius:16px; overflow:hidden;\" cellpadding=\"0\" cellspacing=\"0\">\n        <tr><td style=\"background:#2c8a3c; padding:30px 25px; color:#ffffff;\">\n          <div style=\"font-size:24px; font-weight:bold; margin-bottom:8px;\">🎯 1월 4주차 채용공고 도착!</div>\n          <div style=\"font-size:15px; opacity:0.9;\">'바로가기'를 누르면 자세한 정보를 볼 수 있어요!</div>\n        </td></tr>\n        \n        <tr><td style=\"background:#fff9db; padding:12px 25px; border-bottom:1px solid #fff3bf;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n            <tr>\n              <td align=\"left\" style=\"font-size:13px; color:#856404;\">\n                ⚠️ <b>정확한 정보</b>는 회사 홈페이지를 통해 확인해 주세요.\n              </td>\n              <td align=\"right\" style=\"font-size:12px; color:#adb5bd; font-family:Arial, sans-serif;\">\n                ${todayStr}\n              </td>\n            </tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"padding:30px 25px 10px 25px;\">\n          <div style=\"font-size:17px; color:#333;\"><b>${userName}님</b>에게 가장 적합한 채용공고</div>\n        </td></tr>\n\n        <tr><td style=\"padding:10px 25px;\">${jobCardsHtml}</td></tr>\n\n        <tr><td style=\"padding:20px 25px;\">\n          <table width=\"100%\" style=\"background:#effaf3; border:1px solid #d3f9e8; border-radius:12px; text-align:center; padding:25px;\">\n            <tr><td>\n              <div style=\"font-size:30px; margin-bottom:15px;\">🤔</div>\n              <div style=\"font-size:18px; font-weight:bold; color:#333; margin-bottom:10px;\">받아본 채용공고 어떠셨나요?</div>\n              <div style=\"font-size:14px; color:#666; line-height:1.6; margin-bottom:20px;\">\n                여러분의 소중한 의견을 들려주세요!<br>Hoper 분들의 피드백을 반영하여 더 나은 서비스로 찾아뵙겠습니다.\n              </div>\n              <a href=\"#\" style=\"display:inline-block; background:#333; color:#fff; padding:12px 25px; text-decoration:none; border-radius:8px; font-weight:bold; font-size:14px;\">💌 피드백 하러가기</a>\n            </td></tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"background:#2c8a3c; padding:40px 25px; text-align:center; color:#ffffff;\">\n          <div style=\"display:inline-block; border:2px solid #ffffff; border-radius:30px; padding:8px 25px; font-size:20px; font-weight:bold; margin-bottom:20px;\">JOB FINDER</div>\n          <div style=\"font-size:14px; margin-bottom:15px; opacity:0.9;\">당신의 성공적인 커리어를 응원합니다 🎸</div>\n          <div style=\"font-size:13px; margin-bottom:20px;\">\n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">공식 페이지</a> | \n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">구독정보 변경</a> | \n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">FAQ</a>\n          </div>\n          <div style=\"font-size:12px; opacity:0.7; margin-bottom:15px;\">수신거부 😭</div>\n          <div style=\"font-size:11px; opacity:0.5;\">© 2026 JOB FINDER. All rights reserved.</div>\n        </td></tr>\n      </table>\n    </td></tr>\n  </table>\n</body>\n</html>`;\n\n  results.push({\n    json: {\n      to: userData.user_email,\n      subject: `[공고추천] ${userName}님, 맞춤형 채용공고를 확인해보세요!`,\n      html: fullHtml\n    }\n  });\n}\n\nreturn results;"
+        "jsCode": "const matchedData = $input.all();\n\n// 1. 동적 날짜 및 주차 계산 로직\nconst now = new Date();\nconst currentMonth = now.getMonth() + 1; \nconst currentDay = now.getDate();\n\n// 주차 계산: 1~7일(1주), 8~14일(2주), 15~21일(3주), 22~말일(4~5주)\nconst currentWeek = Math.ceil(currentDay / 7); \nconst weekTitle = `${currentMonth}월 ${currentWeek}주차`;\n\n// 하단 주의사항 바에 들어갈 날짜 (YYYY.MM.DD)\nconst todayStr = `${now.getFullYear()}.${String(currentMonth).padStart(2, '0')}.${String(currentDay).padStart(2, '0')}`;\n\nfunction generateJobCard(jobMatch) {\n  const job = jobMatch.job || jobMatch;\n  const isPreferred = jobMatch.is_preferred_company;\n  const starMark = isPreferred ? \"⭐ \" : \"\";\n  \n  const companyName = job.company_name || \"기업명 미상\";\n  const jobTitle = job.job_title || job.position_name || \"모집공고 참조\";\n  const processedPosition = job.processed_position_name || \"직무 미분류\";\n  const employmentType = job.employment_type || \"확인불가\";\n  const deadline = job.deadline || job.application_deadline_date || \"상시채용\";\n  const applyUrl = job.application_link || \"#\";\n  const logoUrl = job.logo_url || \"\";\n\n  return `\n<table width=\"100%\" style=\"border:1px solid #e1e4e8; background:#ffffff; margin-bottom:20px; border-radius:12px; border-collapse:separate;\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr><td style=\"padding:20px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n      <tr>\n        <td width=\"80\" valign=\"top\" style=\"padding-right:15px;\">\n          ${logoUrl ? `<img src=\"${logoUrl}\" width=\"80\" style=\"border-radius:8px; border:1px solid #eee;\">` : \n          `<div style=\"width:80px; height:80px; background:#f0f2f5; border-radius:8px; text-align:center; line-height:80px; font-size:12px; color:#999; border:1px solid #eee;\">LOGO</div>`}\n        </td>\n        <td valign=\"top\">\n          <div style=\"font-weight:bold; font-size:16px; color:#333; margin-bottom:8px;\">${starMark}${companyName}</div>\n          <table width=\"100%\" style=\"font-size:14px; line-height:1.6; color:#555;\">\n            <tr><td width=\"70\" style=\"color:#888;\"><b>모집부문</b></td><td>${jobTitle}</td></tr>\n            <tr><td style=\"color:#888;\"><b>직무명</b></td><td>${processedPosition}</td></tr>\n            <tr><td style=\"color:#888;\"><b>고용형태</b></td><td><span style=\"background:#e6f7ed; color:#2c8a3c; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;\">${employmentType}</span></td></tr>\n            <tr><td style=\"color:#888;\"><b>접수마감</b></td><td>${deadline} <span style=\"color:#d93025; font-weight:bold;\">(D-Day)</span></td></tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n    <a href=\"${applyUrl}\" target=\"_blank\" style=\"display:block; background:#f8f9fa; border:1px solid #dee2e6; padding:12px; text-align:center; text-decoration:none; color:#495057; border-radius:8px; margin-top:15px; font-weight:bold; font-size:14px;\">바로가기</a>\n  </td></tr>\n</table>`;\n}\n\nconst results = [];\n\nfor (const item of matchedData) {\n  const userData = item.json;\n  const userName = userData.user_name || \"구독자\";\n  const matchedJobs = userData.filtered_jobs || userData.matched_jobs || [];\n  const jobCardsHtml = matchedJobs.slice(0, 10).map(j => generateJobCard(j)).join(\"\\n\");\n  \n  const fullHtml = `\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0; padding:0; background-color:#f4f7f6; font-family:'Apple SD Gothic Neo', sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f7f6; padding:20px 0;\">\n    <tr><td>\n      <table width=\"600\" style=\"background:#ffffff; margin:0 auto; border-radius:16px; overflow:hidden;\" cellpadding=\"0\" cellspacing=\"0\">\n        <tr><td style=\"background:#2c8a3c; padding:30px 25px; color:#ffffff;\">\n          <div style=\"font-size:24px; font-weight:bold; margin-bottom:8px;\">🎯 ${weekTitle} 채용공고 도착!</div>\n          <div style=\"font-size:15px; opacity:0.9;\">'바로가기'를 누르면 자세한 정보를 볼 수 있어요!</div>\n        </td></tr>\n        \n        <tr><td style=\"background:#fff9db; padding:12px 25px; border-bottom:1px solid #fff3bf;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n            <tr>\n              <td align=\"left\" style=\"font-size:13px; color:#856404;\">\n                ⚠️ <b>정확한 정보</b>는 회사 홈페이지를 통해 확인해 주세요.\n              </td>\n              <td align=\"right\" style=\"font-size:12px; color:#adb5bd; font-family:Arial, sans-serif;\">\n                ${todayStr}\n              </td>\n            </tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"padding:30px 25px 10px 25px;\">\n          <div style=\"font-size:17px; color:#333;\"><b>${userName}님</b>에게 가장 적합한 채용공고</div>\n        </td></tr>\n\n        <tr><td style=\"padding:10px 25px;\">${jobCardsHtml}</td></tr>\n\n        <tr><td style=\"padding:20px 25px;\">\n          <table width=\"100%\" style=\"background:#effaf3; border:1px solid #d3f9e8; border-radius:12px; text-align:center; padding:25px;\">\n            <tr><td>\n              <div style=\"font-size:30px; margin-bottom:15px;\">🤔</div>\n              <div style=\"font-size:18px; font-weight:bold; color:#333; margin-bottom:10px;\">받아본 채용공고 어떠셨나요?</div>\n              <div style=\"font-size:14px; color:#666; line-height:1.6; margin-bottom:20px;\">\n                여러분의 소중한 의견을 들려주세요!<br>Hoper 분들의 피드백을 반영하여 더 나은 서비스로 찾아뵙겠습니다.\n              </div>\n              <a href=\"https://forms.gle/your-form-link\" style=\"display:inline-block; background:#333; color:#fff; padding:12px 25px; text-decoration:none; border-radius:8px; font-weight:bold; font-size:14px;\">💌 피드백 하러가기</a>\n            </td></tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"background:#2c8a3c; padding:40px 25px; text-align:center; color:#ffffff;\">\n          <div style=\"display:inline-block; border:2px solid #ffffff; border-radius:30px; padding:8px 25px; font-size:20px; font-weight:bold; margin-bottom:20px;\">JOB FINDER</div>\n          <div style=\"font-size:14px; margin-bottom:15px; opacity:0.9;\">당신의 성공적인 커리어를 응원합니다 🎸</div>\n          <div style=\"font-size:13px; margin-bottom:20px;\">\n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">공식 페이지</a> | \n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">구독정보 변경</a> | \n            <a href=\"#\" style=\"color:#ffec99; text-decoration:none;\">FAQ</a>\n          </div>\n          <div style=\"font-size:12px; opacity:0.7; margin-bottom:15px;\">수신거부 😭</div>\n          <div style=\"font-size:11px; opacity:0.5;\">© 2026 JOB FINDER. All rights reserved.</div>\n        </td></tr>\n      </table>\n    </td></tr>\n  </table>\n</body>\n</html>`;\n\n  results.push({\n    json: {\n      to: userData.user_email,\n      subject: `[공고추천] ${userName}님, 맞춤형 채용공고를 확인해보세요!`,\n      html: fullHtml\n    }\n  });\n}\n\nreturn results;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1584,
-        512
+        1376,
+        544
       ],
       "id": "f1089754-382e-4af2-9dd9-07b407539857",
       "name": "이메일 템플릿 생성"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1YAtgYS0twCj_CQO5jLdZoqN3Qq8wpKGSnzdryR3MKds",
+          "mode": "list",
+          "cachedResultName": "job-finder모집예시",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YAtgYS0twCj_CQO5jLdZoqN3Qq8wpKGSnzdryR3MKds/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "시트1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YAtgYS0twCj_CQO5jLdZoqN3Qq8wpKGSnzdryR3MKds/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('지원자 로드').item.json.row_number }}",
+            "status": "SUCCESS",
+            "sent_at": "={{ $now }}",
+            "발송상태": "발송완료",
+            "발송시간": "={{ $now.format('HH:mm:ss') }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "타임스탬프",
+              "displayName": "타임스탬프",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "이메일 주소",
+              "displayName": "이메일 주소",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "성함 ",
+              "displayName": "성함 ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "성별 ",
+              "displayName": "성별 ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "출생연도 (ex. 2003)",
+              "displayName": "출생연도 (ex. 2003)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "찾고 계신 공고의 학력 조건을 선택해주세요. (졸업예정자도 선택 가능, 복수선택)",
+              "displayName": "찾고 계신 공고의 학력 조건을 선택해주세요. (졸업예정자도 선택 가능, 복수선택)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "찾고 계신 공고의 경력 조건을 선택해주세요.",
+              "displayName": "찾고 계신 공고의 경력 조건을 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "개인정보 수집과 이용에 대한 동의 \n\n개인정보 항목 : 이름, 이메일주소, 성별, 출생연도\n개인정보 보유 및 이용기간 : 수집일로부터 180일, 이후 개인정보 파기 \n개인정보 수집 및 이용 목적 : 채용공고 알림 서비스 제공\n\n맞춤형 채용공고 알림 서비스에 필요한 개인정보를 수집하고 이용하는 것에 동의하시나요? ",
+              "displayName": "개인정보 수집과 이용에 대한 동의 \n\n개인정보 항목 : 이름, 이메일주소, 성별, 출생연도\n개인정보 보유 및 이용기간 : 수집일로부터 180일, 이후 개인정보 파기 \n개인정보 수집 및 이용 목적 : 채용공고 알림 서비스 제공\n\n맞춤형 채용공고 알림 서비스에 필요한 개인정보를 수집하고 이용하는 것에 동의하시나요? ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "희망 고용 형태 (복수선택)",
+              "displayName": "희망 고용 형태 (복수선택)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "희망 직무 1순위 (필수응답)",
+              "displayName": "희망 직무 1순위 (필수응답)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "희망 직무 2순위 ",
+              "displayName": "희망 직무 2순위 ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "희망 직무 3순위 ",
+              "displayName": "희망 직무 3순위 ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "삼성 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "삼성 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SK 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "SK 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "현대자동차 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "현대자동차 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LG 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "LG 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "롯데 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "롯데 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "한화 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "한화 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CJ 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "CJ 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NAVER 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "NAVER 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "카카오 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "카카오 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "쿠팡 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "쿠팡 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "우아한형제들 그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "우아한형제들 그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "토스그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "토스그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "신한금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "신한금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KB금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "KB금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "우리금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "우리금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "하나금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "displayName": "하나금융그룹에서 관심 있는 회사를 선택해주세요.",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Finder ver2가 출시된다면 출시 소식을 이메일로 보내드릴까요?",
+              "displayName": "Job Finder ver2가 출시된다면 출시 소식을 이메일로 보내드릴까요?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "발송상태",
+              "displayName": "발송상태",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "발송시간",
+              "displayName": "발송시간",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1904,
+        544
+      ],
+      "id": "0a77203e-277f-4a5e-9fa6-5409ac27b20b",
+      "name": "지원자시트 업데이트",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tVTUkhFE21SgNGAl",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA",
+          "mode": "list",
+          "cachedResultName": "job-finder 발송기록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "시트1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "발송날짜": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "지원자 성함": "={{ $('지원자 로드').item.json['성함 '] }}",
+            "이메일": "={{ $('지원자 로드').item.json['이메일 주소'] }}",
+            "추천기업리스트": "={{ $('매칭 필터링').item.json.matched_jobs.map(j => j.job.company_name).join(', ') }}",
+            "공고개수": "={{ $('매칭 필터링').item.json.matched_jobs.length }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "발송날짜",
+              "displayName": "발송날짜",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "지원자 성함",
+              "displayName": "지원자 성함",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "이메일",
+              "displayName": "이메일",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "추천기업리스트",
+              "displayName": "추천기업리스트",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "공고개수",
+              "displayName": "공고개수",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2112,
+        544
+      ],
+      "id": "ccfeec38-3afa-4d4a-93f1-5c8da85c51de",
+      "name": "발송기록",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tVTUkhFE21SgNGAl",
+          "name": "Google Sheets account 3"
+        }
+      }
     }
   ],
   "pinData": {
@@ -706,6 +1175,28 @@
           }
         ]
       ]
+    },
+    "채용공고 발송1": {
+      "main": [
+        [
+          {
+            "node": "지원자시트 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "지원자시트 업데이트": {
+      "main": [
+        [
+          {
+            "node": "발송기록",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -713,7 +1204,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "0295e186-7c5b-4a62-b392-bd1c87dcfc3d",
+  "versionId": "77877a4b-a07b-4e51-aa28-d7276dc1f718",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "73beb51227076257a518115ccd84a77fdd6203dc7bdeaa4e78ecb7f33b67bde9"
