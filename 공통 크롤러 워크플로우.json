@@ -1,0 +1,427 @@
+{
+  "name": "공통 크롤러 워크플로우",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "group"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "스케줄러 작동",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        48,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YtQlMxx219wDgWPM8Ohda74Ymp7gnaTSKV3atDncdK0",
+          "mode": "list",
+          "cachedResultName": "[job-finder] 기업별 메타데이터",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YtQlMxx219wDgWPM8Ohda74Ymp7gnaTSKV3atDncdK0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "시트1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YtQlMxx219wDgWPM8Ohda74Ymp7gnaTSKV3atDncdK0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        752
+      ],
+      "id": "ebf91e34-74d4-4b81-b14f-3cf739b9dac8",
+      "name": "기업 메타데이터",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wRD7VRLOK6oeiOv6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        688,
+        736
+      ],
+      "id": "40ddc26e-0b78-4683-a342-9b3fd875e25b",
+      "name": "기업별 순차 처리"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.type}}",
+                    "rightValue": "A",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "060875b2-ca1d-4bb0-a3f4-5c283b7dbd5c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Output A"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ef3de70c-059e-4166-83de-fb2ab0ebb160",
+                    "leftValue": "={{$json.type}}",
+                    "rightValue": "B",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Output B"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e4482725-de92-45f6-a60f-18d1f9293ce8",
+                    "leftValue": "={{$json.type}}",
+                    "rightValue": "C",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Output C"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        784
+      ],
+      "id": "f8ef7017-2a5f-4bae-9a73-76bc3b25971f",
+      "name": "Type별 분기"
+    },
+    {
+      "parameters": {
+        "content": "## 공통 크롤러\n",
+        "height": 576,
+        "width": 1536,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "b585a7b0-d6a0-46c5-be6a-5c7f8bf98ffd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f9b7452e-724b-4c54-8dab-d2348d8df62e",
+              "leftValue": "={{$json.group}}",
+              "rightValue": "={{$items(\"스케줄러 작동\")[0].json.group}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        752
+      ],
+      "id": "8934c96f-b563-47bd-a42f-ada112b237c2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/mock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company",
+              "value": "={{$json.company}}"
+            },
+            {
+              "name": "group",
+              "value": "={{$json.group}}"
+            },
+            {
+              "name": "type",
+              "value": "={{$json.type}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1280,
+        608
+      ],
+      "id": "4351db2e-5b80-4919-b4ef-7c25bb7b56b2",
+      "name": "Type A 크롤러",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/mock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company",
+              "value": "={{$json.company}}"
+            },
+            {
+              "name": "group",
+              "value": "={{$json.group}}"
+            },
+            {
+              "name": "type",
+              "value": "={{$json.type}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1280,
+        768
+      ],
+      "id": "6131437b-b46f-49b1-b9a9-24365973f7cd",
+      "name": "Type B 크롤러",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/mock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company",
+              "value": "={{$json.company}}"
+            },
+            {
+              "name": "group",
+              "value": "={{$json.group}}"
+            },
+            {
+              "name": "type",
+              "value": "={{$json.type}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1280,
+        928
+      ],
+      "id": "4e1958aa-a220-4724-9270-3599cf41defc",
+      "name": "Type C 크롤러",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "스케줄러 작동": {
+      "main": [
+        [
+          {
+            "node": "기업 메타데이터",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "기업 메타데이터": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "기업별 순차 처리": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Type별 분기",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type별 분기": {
+      "main": [
+        [
+          {
+            "node": "Type A 크롤러",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Type B 크롤러",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Type C 크롤러",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "기업별 순차 처리",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type A 크롤러": {
+      "main": [
+        [
+          {
+            "node": "기업별 순차 처리",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type B 크롤러": {
+      "main": [
+        [
+          {
+            "node": "기업별 순차 처리",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Type C 크롤러": {
+      "main": [
+        [
+          {
+            "node": "기업별 순차 처리",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "44522e2a-b594-4a6f-bcb9-bc16134573c0",
+  "meta": {
+    "instanceId": "a2b8daa81c87042a26ecb023267d9be4fc1fe4de950058e43e4a318e68761b75"
+  },
+  "id": "5PCunFjiSiCPH1ZG",
+  "tags": []
+}
