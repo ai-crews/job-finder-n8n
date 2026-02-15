@@ -4,12 +4,8 @@ const matchedData = $input.all();
 const now = new Date();
 const currentMonth = now.getMonth() + 1; 
 const currentDay = now.getDate();
-
-// 주차 계산: 1~7일(1주), 8~14일(2주), 15~21일(3주), 22~말일(4~5주)
 const currentWeek = Math.ceil(currentDay / 7); 
 const weekTitle = `${currentMonth}월 ${currentWeek}주차`;
-
-// 하단 주의사항 바에 들어갈 날짜 (YYYY.MM.DD)
 const todayStr = `${now.getFullYear()}.${String(currentMonth).padStart(2, '0')}.${String(currentDay).padStart(2, '0')}`;
 
 function generateJobCard(jobMatch) {
@@ -17,13 +13,27 @@ function generateJobCard(jobMatch) {
   const isPreferred = jobMatch.is_preferred_company;
   const starMark = isPreferred ? "⭐ " : "";
   
-  const companyName = job.company_name || "기업명 미상";
-  const jobTitle = job.job_title || job.position_name || "모집공고 참조";
-  const processedPosition = job.processed_position_name || "직무 미분류";
+  // 🎯 데이터 추출 (image_c8eae0.jpg 컬럼 기준 매칭)
+  const companyName = job.company_name || "기업명 미상"; 
+  const recruitmentTitle = job.position_name || "공고 참조";     // 채용공고명 (B컬럼)
+  const jobTitle = job.processed_position_name || "직무 미분류"; // 직무명 (C컬럼)
+  
   const employmentType = job.employment_type || "확인불가";
   const deadline = job.deadline || job.application_deadline_date || "상시채용";
-  const applyUrl = job.application_link || "#";
-  const logoUrl = job.logo_url || "";
+  const logoUrl = job.logo_url || job.logo || "";
+  const rawApplyUrl = job.apply_url || job.application_link || "#";
+
+  // 🎯 리다이렉트 URL 조립 (3가지 파라미터 포함)
+  const myAppUrl = "http://localhost:3000"; 
+  const encodedDest = encodeURIComponent(rawApplyUrl);
+  const encodedCompany = encodeURIComponent(companyName);
+  const encodedJob = encodeURIComponent(jobTitle);
+  const encodedRecruitment = encodeURIComponent(recruitmentTitle);
+
+  // index.ejs에서 받을 변수명과 100% 일치시켰습니다.
+  // --- 🎯 [n8n 수정] 출처(source) 파라미터 추가 ---
+const source = "email"; // 이메일 유입임을 명시
+const applyUrl = `${myAppUrl}/?url=${encodedDest}&company=${encodedCompany}&job_title=${encodedJob}&recruitment_title=${encodedRecruitment}&source=${source}`;
 
   return `
 <table width="100%" style="border:1px solid #e1e4e8; background:#ffffff; margin-bottom:20px; border-radius:12px; border-collapse:separate;" cellpadding="0" cellspacing="0">
@@ -37,8 +47,8 @@ function generateJobCard(jobMatch) {
         <td valign="top">
           <div style="font-weight:bold; font-size:16px; color:#333; margin-bottom:8px;">${starMark}${companyName}</div>
           <table width="100%" style="font-size:14px; line-height:1.6; color:#555;">
-            <tr><td width="70" style="color:#888;"><b>모집부문</b></td><td>${jobTitle}</td></tr>
-            <tr><td style="color:#888;"><b>직무명</b></td><td>${processedPosition}</td></tr>
+            <tr><td width="70" style="color:#888;"><b>모집부문</b></td><td>${recruitmentTitle}</td></tr>
+            <tr><td style="color:#888;"><b>직무명</b></td><td>${jobTitle}</td></tr>
             <tr><td style="color:#888;"><b>고용형태</b></td><td><span style="background:#e6f7ed; color:#2c8a3c; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;">${employmentType}</span></td></tr>
             <tr><td style="color:#888;"><b>접수마감</b></td><td>${deadline} <span style="color:#d93025; font-weight:bold;">(D-Day)</span></td></tr>
           </table>
@@ -105,12 +115,6 @@ for (const item of matchedData) {
         <tr><td style="background:#2c8a3c; padding:40px 25px; text-align:center; color:#ffffff;">
           <div style="display:inline-block; border:2px solid #ffffff; border-radius:30px; padding:8px 25px; font-size:20px; font-weight:bold; margin-bottom:20px;">JOB FINDER</div>
           <div style="font-size:14px; margin-bottom:15px; opacity:0.9;">당신의 성공적인 커리어를 응원합니다 🎸</div>
-          <div style="font-size:13px; margin-bottom:20px;">
-            <a href="#" style="color:#ffec99; text-decoration:none;">공식 페이지</a> | 
-            <a href="#" style="color:#ffec99; text-decoration:none;">구독정보 변경</a> | 
-            <a href="#" style="color:#ffec99; text-decoration:none;">FAQ</a>
-          </div>
-          <div style="font-size:12px; opacity:0.7; margin-bottom:15px;">수신거부 😭</div>
           <div style="font-size:11px; opacity:0.5;">© 2026 JOB FINDER. All rights reserved.</div>
         </td></tr>
       </table>
