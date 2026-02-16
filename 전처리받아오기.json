@@ -1,0 +1,64 @@
+{
+  "name": "전처리받아오기",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "jobfinderdata",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b74c521d-e47f-440a-b6d0-fb6aa7989765",
+      "name": "Webhook",
+      "webhookId": "7e66bdff-a103-49b8-85bd-6073fe299c42"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2255344d-d6a1-49cf-a9c3-8459fd058e22",
+      "name": "Split Out",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "retryOnFail": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "62e15607-8d8c-4ac3-a86d-3a4ecb4c8af4",
+  "meta": {
+    "instanceId": "ffc4fdbd9a177c189505f3cea6aba607541eaaac1c74cedb3a9a48d709823105"
+  },
+  "id": "h8utXZaLVXTaFjbE",
+  "tags": []
+}
