@@ -1,6 +1,6 @@
 const allRows = $input.all();
 
-// 1. 날짜 및 주차 계산 (오늘: 2026-02-28)
+// 1. 날짜 및 주차 계산 (오늘: 2026-02-28 기준)
 const now = new Date();
 const todayStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 const weekTitle = `${now.getMonth() + 1}월 ${Math.ceil(now.getDate() / 7)}주차`;
@@ -53,7 +53,7 @@ for (const row of allRows) {
   }
 }
 
-// 사용자별 정렬
+// 사용자별 정렬 로직 (추천순/마감순)
 for (const email in usersMap) {
   const user = usersMap[email];
   const isRecommended = user.sortingCriterion.includes("추천순");
@@ -62,11 +62,9 @@ for (const email in usersMap) {
   user.explorationJobs.sort(sortFn);
 }
 
-// 4. 잡 카드 생성 함수 (userName 매개변수 추가)
+// 4. 잡 카드 생성 함수 (항목 공백 제거 및 왼쪽 정렬)
 function generateJobCard(job, userEmail, userName) {
   const dDay = getDDay(job.deadline);
-  
-  // 🎯 $input.first() 대신 전달받은 userName을 사용합니다.
   const params = [
     `url=${encodeURIComponent(job.apply_url)}`,
     `company=${encodeURIComponent(job.company_name)}`,
@@ -79,28 +77,28 @@ function generateJobCard(job, userEmail, userName) {
   const applyUrl = `${myAppUrl}/?${params}`;
 
   return `
-<table width="100%" style="border:1px solid #E8E8E8; background:#ffffff; margin-bottom:15px; border-radius:10px; border-collapse:separate; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" cellpadding="0" cellspacing="0">
-  <tr><td style="padding:15px;">
+<table width="600" style="width:600px !important; border:1px solid #E3E8EF; background-color:#F9FAFC; margin-bottom:12px; border-radius:10px; border-collapse:separate;" cellpadding="0" cellspacing="0">
+  <tr><td style="padding:18px;"> 
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td width="60" valign="top" style="padding-right:15px;">
-          ${job.logo_url ? `<img src="${job.logo_url}" width="60" style="border-radius:8px;">` : `<div style="width:60px; height:60px; background:#F5F5F5; border-radius:8px; text-align:center; line-height:60px; font-size:10px; color:#AAA;">LOGO</div>`}
+        <td width="60" valign="top" style="padding-right:15px; width:60px !important;"> 
+          ${job.logo_url ? `<img src="${job.logo_url}" width="60" style="border-radius:8px; display:block;">` : `<div style="width:60px; height:60px; background-color:#ffffff; border:1px solid #E3E8EF; border-radius:8px; text-align:center; line-height:60px; font-size:11px; color:#AAAAAA;">LOGO</div>`}
         </td>
         <td valign="top">
-          <table width="100%" style="font-family:'Roboto', sans-serif; font-size:12px; line-height:1.5;">
-            <tr><td width="50" style="color:#888888 !important;">기업</td><td style="font-weight:bold; font-size:14px; color:#333333 !important;">${job.company_name}</td></tr>
-            <tr><td style="color:#888888 !important;">공고명</td><td style="font-size:13px; color:#333333 !important;">${job.position_name}</td></tr>
-            <tr><td style="color:#888888 !important;">고용형태</td><td>
-              <span style="color:#007BFF !important; background:#E7F3FF !important; padding:1px 6px; border-radius:4px; font-weight:bold; font-size:10px; margin-right:4px;">신입</span>
-              <span style="color:#FD7E14 !important; background:#FFF3E6 !important; padding:1px 6px; border-radius:4px; font-weight:bold; font-size:10px;">${job.employment_type}</span>
+          <table width="100%" cellpadding="0" cellspacing="0" style="font-family:'Roboto', sans-serif; font-size:14px; line-height:1.8;"> 
+            <tr><td width="55" style="color:#888888 !important; white-space:nowrap; text-align:left;">기업</td><td style="font-weight:bold; font-size:16px; color:#333333 !important; padding-left:10px; text-align:left;">${job.company_name}</td></tr>
+            <tr><td width="55" style="color:#888888 !important; white-space:nowrap; text-align:left;">공고명</td><td style="font-size:15px; color:#333333 !important; padding-left:10px; text-align:left;">${job.position_name}</td></tr>
+            <tr><td width="55" style="color:#888888 !important; white-space:nowrap; text-align:left;">고용형태</td><td style="white-space:nowrap; padding-left:10px; text-align:left;">
+              <span style="display:inline-block; color:#007BFF !important; background-color:#E7F3FF !important; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;">신입</span>&nbsp;
+              <span style="display:inline-block; color:#FD7E14 !important; background-color:#FFF3E6 !important; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${job.employment_type}</span>
             </td></tr>
-            <tr><td style="color:#888888 !important;">마감일자</td><td style="font-weight:bold; color:#333333 !important;">
-              <span style="color:#D93025 !important;">${dDay}</span> | ${job.deadline === "9999-12-31" ? "상시채용" : job.deadline}
+            <tr><td width="55" style="color:#888888 !important; white-space:nowrap; text-align:left;">마감일자</td><td style="font-weight:bold; color:#333333 !important; white-space:nowrap; padding-left:10px; text-align:left;">
+              <span style="color:#D93025 !important;">${dDay}</span>&nbsp;|&nbsp;${job.deadline === "9999-12-31" ? "상시채용" : job.deadline}
             </td></tr>
           </table>
         </td>
-        <td width="70" align="right" valign="bottom">
-            <a href="${applyUrl}" target="_blank" style="font-family:'Roboto', sans-serif; font-size:11px; color:#333333 !important; text-decoration:none; border-bottom:1px solid #333333; font-weight:bold;">바로가기 ></a>
+        <td width="70" align="right" valign="bottom" style="width:70px !important;">
+            <a href="${applyUrl}" target="_blank" style="font-family:'Roboto', sans-serif; font-size:12px; color:#333333 !important; text-decoration:none; border-bottom:1px solid #333333; font-weight:bold;">바로가기&nbsp;></a>
         </td>
       </tr>
     </table>
@@ -108,61 +106,123 @@ function generateJobCard(job, userEmail, userName) {
 </table>`;
 }
 
-// 5. 최종 결과 생성
+// 5. 최종 HTML 생성
 const results = [];
 for (const email in usersMap) {
   const user = usersMap[email];
-  
-  // 🎯 호출 시 user.userName을 세 번째 인자로 넘겨줍니다.
-  const matchedHtml = user.matchedJobs.length > 0 ? `
-    <div style="background:#9BC988; color:#3E5F44 !important; padding:6px 12px; border-radius:4px; font-weight:bold; font-size:13px; margin-bottom:15px;">
-      <table width="100%"><tr><td style="color:#3E5F44 !important; font-weight:bold;">📌 맞춤형 채용공고</td><td align="right" style="color:#3E5F44 !important; font-size:10px; font-weight:normal; opacity:0.8;">${user.sortingCriterion}</td></tr></table>
-    </div>
-    ${user.matchedJobs.slice(0, 5).map(j => generateJobCard(j, user.userEmail, user.userName)).join("")}` : `
-    <div style="text-align:center; padding:30px 20px; color:#333333 !important; font-size:14px; background:#ffffff; border:1px dashed #E8E8E8; border-radius:10px; margin-bottom:20px;">
-      <b>금주 맞춤형 채용공고가 존재하지 않아요.</b><br>대신 아래 <b>${user.userName}님</b>이 눈여겨 보면 좋을 공고를 추천해드려요!
-    </div>`;
+  const badgeStyle = `background:#9BC988 !important; background-image:linear-gradient(#9BC988, #9BC988) !important; color:#000000 !important; font-weight:bold; font-size:14px; padding:10px 15px; border-radius:4px;`;
+  const hrStyle = `border: 0; border-top: 1px solid #EEEEEE; margin: 40px 0;`; // 🎯 가로선 스타일
+
+  let matchedHtml = "";
+  let explorationTitle = "";
+
+  if (user.matchedJobs.length > 0) {
+    matchedHtml = `
+      <div style="${badgeStyle} margin-bottom:15px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td align="left" style="color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;">📌&nbsp;맞춤형&nbsp;채용공고</td>
+            <td align="right" style="color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;">${user.sortingCriterion}</td>
+          </tr>
+        </table>
+      </div>
+      ${user.matchedJobs.slice(0, 5).map(j => generateJobCard(j, user.userEmail, user.userName)).join("")}`;
+    explorationTitle = `<div style="font-size:18px; color:#000000 !important; font-weight:bold; margin-top:30px; margin-bottom:15px;">${user.userName}님이&nbsp;눈여겨&nbsp;보면&nbsp;좋을&nbsp;공고를&nbsp;추천해드려요!</div>`;
+  } else {
+    matchedHtml = `
+      <div style="${badgeStyle} margin-bottom:15px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td align="left" style="color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;">📌&nbsp;맞춤형&nbsp;채용공고</td>
+            <td align="right" style="color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;">${user.sortingCriterion}</td>
+          </tr>
+        </table>
+      </div>
+      <div style="text-align:center; padding:50px 20px; color:#333333 !important; font-size:15px; background-color:#ffffff; border:1px dashed #E3E8EF; border-radius:10px; margin-bottom:20px;">
+        <b>금주&nbsp;맞춤형&nbsp;채용공고가&nbsp;존재하지&nbsp;않아요.</b><br>대신&nbsp;아래&nbsp;<b>${user.userName}님</b>이&nbsp;눈여겨&nbsp;보면&nbsp;좋을&nbsp;공고를&nbsp;추천해드려요!
+      </div>`;
+    explorationTitle = `<div style="font-size:18px; color:#000000 !important; font-weight:bold; margin-top:30px; margin-bottom:15px;">Job&nbsp;Finder가&nbsp;${user.userName}님께&nbsp;추천하는&nbsp;공고</div>`;
+  }
 
   const explorationHtml = user.explorationJobs.length > 0 ? `
-    <div style="margin-top:25px;">
-      <div style="background:#9BC988; color:#3E5F44 !important; padding:6px 12px; border-radius:4px; font-weight:bold; font-size:13px; margin-bottom:15px;">
-        <table width="100%"><tr><td style="color:#3E5F44 !important; font-weight:bold;">🚀 탐색형 채용공고</td><td align="right" style="color:#3E5F44 !important; font-size:10px; font-weight:normal; opacity:0.8;">${user.sortingCriterion}</td></tr></table>
-      </div>
-      ${user.explorationJobs.slice(0, 5).map(j => generateJobCard(j, user.userEmail, user.userName)).join("")}
-    </div>` : "";
+    <div style="${hrStyle}"></div> ${explorationTitle}
+    <div style="${badgeStyle} margin-bottom:15px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="left" style="color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;">📌&nbsp;탐색형&nbsp;채용공고</td>
+          <td align="right" style="color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;">${user.sortingCriterion}</td>
+        </tr>
+      </table>
+    </div>
+    ${user.explorationJobs.slice(0, 5).map(j => generateJobCard(j, user.userEmail, user.userName)).join("")}` : "";
+
+  const isRecommended = user.sortingCriterion.includes("추천순");
+  const headerMent = isRecommended 
+    ? `${user.userName}님이&nbsp;설정하신&nbsp;조건에&nbsp;적합한&nbsp;순으로&nbsp;보여드려요!`
+    : `${user.userName}님&nbsp;맞춤형&nbsp;공고를&nbsp;마감기한&nbsp;순으로&nbsp;보여드려요!`;
 
   const fullHtml = `
-<!DOCTYPE html>
-<html>
-<head><link href="https://fonts.googleapis.com/css2?family=Alatsi&family=Roboto:wght@400;700&display=swap" rel="stylesheet"></head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=600" />
+  <link href="https://fonts.googleapis.com/css2?family=Alatsi&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
 <body style="margin:0; padding:0; background-color:#F4F4F4; font-family:'Roboto', sans-serif;">
-  <table width="100%" style="background-color:#F4F4F4; padding:20px 10px;">
-    <tr><td>
-      <table width="100%" style="max-width:600px; background:#ffffff; margin:0 auto; overflow:hidden;" cellpadding="0" cellspacing="0">
-        <tr><td style="background:#3E5F44; padding:30px 25px; color:#ffffff !important;">
-          <div style="font-size:22px; font-weight:bold; margin-bottom:8px; color:#ffffff !important;">🔎 ${weekTitle} 채용공고 도착!</div>
-          <div style="font-size:12px; opacity:0.9; color:#ffffff !important;">'바로가기'를 클릭하면 더 자세한 정보를 확인하실 수 있어요.</div>
-          <div style="text-align:right; font-size:10px; opacity:0.6; color:#ffffff !important; margin-top:10px;">${todayStr}</div>
-        </td></tr>
-        <tr><td style="padding:30px 25px;">
-          <div style="font-size:16px; color:#000000 !important; font-weight:bold; margin-bottom:25px;">${user.userName}님이 설정하신 조건에 적합한 순으로 보여드려요!</div>
-          ${matchedHtml}
-          ${explorationHtml}
-          <div style="text-align:center; margin-top:40px;">
-            <a href="${myAppUrl}" style="display:inline-block; background:#3E5F44; color:#ffffff !important; padding:14px 30px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:13px;">수시채용공고 보러가기 ></a>
-          </div>
-        </td></tr>
-        <tr><td style="background:#E8E8E8; padding:40px 25px; text-align:center;">
-          <div style="font-family:'Alatsi', sans-serif; font-size:24px; font-weight:bold; color:#3E5F44 !important; margin-bottom:15px;">JOB FINDER</div>
-          <div style="font-size:11px; color:#888888 !important; line-height:1.8;">
-            <b style="color:#666666 !important;">Job Finder를 만든 사람들</b><br>
-            임소현 | 최지혜 | 김규연 | 박수민 | 이수진<br>최혜지 | 솔론 | 현재 | 황인성 | 김주은
-          </div>
-        </td></tr>
-        <tr><td style="background:#3E5F44; height:10px;"></td></tr>
-      </table>
-    </td></tr>
-  </table>
+  <center>
+    <table width="600" style="width:600px !important; background-color:#F4F4F4; padding:20px 0;" cellpadding="0" cellspacing="0" border="0">
+      <tr><td>
+        <table width="600" style="width:600px !important; background-color:#ffffff; margin:0 auto; overflow:hidden; border-collapse:collapse;" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="background-color:#3E5F44; padding:35px 25px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <div style="font-size:24px; font-weight:bold; margin-bottom:10px; color:#FFC93E !important;">📌&nbsp;${weekTitle}&nbsp;채용공고&nbsp;도착!</div>
+                  <div style="font-size:13px; color:#ffffff !important; opacity:0.9;">'바로가기'를&nbsp;클릭하면&nbsp;더&nbsp;자세한&nbsp;정보를&nbsp;확인하실&nbsp;수&nbsp;있어요.</div>
+                </td>
+                <td align="right" valign="bottom" style="font-size:12px; color:#ffffff !important; opacity:0.6;">${todayStr}</td>
+              </tr>
+            </table>
+          </td></tr>
+          
+          <tr><td style="padding:35px 25px;">
+            <div style="font-size:18px; color:#000000 !important; font-weight:bold; margin-bottom:30px;">${headerMent}</div>
+            ${matchedHtml}
+            ${explorationHtml}
+            
+            <div style="${hrStyle}"></div> <div style="text-align:center; margin-top:10px;">
+              <div style="font-size:22px; font-weight:bold; color:#000000 !important; margin-bottom:15px;">Job&nbsp;Finder는&nbsp;직접&nbsp;선별한&nbsp;수시채용공고도&nbsp;제공하고&nbsp;있어요!</div>
+              <a href="${myAppUrl}" target="_blank" style="display:inline-block; background-color:#3E5F44; color:#ffffff !important; padding:16px 35px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:14px;">수시채용공고&nbsp;보러가기&nbsp;></a>
+            </div>
+
+            <div style="text-align:center; margin-top:50px; padding-top:35px; border-top:1px solid #EEEEEE;">
+              <div style="font-size:22px; font-weight:bold; color:#000000 !important; margin-bottom:15px;">받아&nbsp;본&nbsp;채용공고가&nbsp;어떠셨나요?</div>
+              <div style="font-size:14px; color:#666666 !important; line-height:1.7; margin-bottom:18px;">
+                여러분의&nbsp;이용&nbsp;후기를&nbsp;들려주세요!<br>
+                여러분의&nbsp;취업준비에&nbsp;더&nbsp;도움이&nbsp;되는&nbsp;서비스가&nbsp;되도록&nbsp;노력할게요.
+              </div>
+              <a href="https://forms.gle/your-feedback-link" target="_blank" style="font-size:14px; color:#333333 !important; font-weight:bold; text-decoration:underline;">서비스&nbsp;피드백하러&nbsp;가기</a>
+            </div>
+          </td></tr>
+
+          <tr><td style="background-color:#E8E8E8; padding:45px 25px; text-align:center;">
+            <div style="font-family:'Alatsi', sans-serif; font-size:26px; font-weight:bold; color:#3E5F44 !important; margin-bottom:20px;">JOB&nbsp;FINDER</div>
+            <div style="margin-bottom:25px; line-height:2.2;">
+              <a href="${myAppUrl}" target="_blank" style="color:#000000 !important; text-decoration:underline; font-weight:bold; font-size:15px;">JOB&nbsp;FINDER&nbsp;공식&nbsp;페이지</a><br>
+              <a href="https://job-finder.notion.site/FAQ-job-finder-web-production-up-railway-app" target="_blank" style="color:#000000 !important; text-decoration:underline; font-weight:bold; font-size:15px;">FAQ</a>
+            </div>
+            <div style="font-size:15px; color:#3E5F44 !important; line-height:1.8;">
+              <a href="https://www.notion.so/2-OKR-2ebc59b0cf1980168318e4111f715cc7" target="_blank" style="color:#3E5F44 !important; text-decoration:underline; font-weight:bold; font-size:15px; display:inline-block; margin-bottom:8px;">Job&nbsp;Finder를&nbsp;만든&nbsp;사람들</a><br>
+              임소현&nbsp;|&nbsp;최지혜&nbsp;|&nbsp;김규연&nbsp;|&nbsp;박수민&nbsp;|&nbsp;이수진<br />
+              최혜지&nbsp;|&nbsp;솔론&nbsp;|&nbsp;현재&nbsp;|&nbsp;황인성&nbsp;|&nbsp;김주은
+            </div>
+          </td></tr>
+          <tr><td style="background-color:#3E5F44; height:10px;"></td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </center>
 </body>
 </html>`;
 
