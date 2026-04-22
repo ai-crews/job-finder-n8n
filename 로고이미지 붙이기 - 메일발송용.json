@@ -1,0 +1,520 @@
+{
+  "name": "로고이미지 붙이기 - 메일발송용",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 채용공고에 로고 이미지 붙이기\n\n전처리된 채용공고 google sheet에서 로드\n",
+        "height": 144,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "13cba9c6-b9ed-4c6d-85cd-f38d14e764b9",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1W6bqXY5xOPWBYnwnrvJ-0oGdyiwcLwCXPohFakmL5_s",
+          "mode": "list",
+          "cachedResultName": "채용공고리스트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W6bqXY5xOPWBYnwnrvJ-0oGdyiwcLwCXPohFakmL5_s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1860327827,
+          "mode": "list",
+          "cachedResultName": "채용공고리스트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W6bqXY5xOPWBYnwnrvJ-0oGdyiwcLwCXPohFakmL5_s/edit#gid=1860327827"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        208
+      ],
+      "id": "0d99e070-446c-47b8-83c5-87950d188931",
+      "name": "채용공고 리스트",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "69TdM865fXvcIkOD",
+          "name": "Google Sheets account_aicrews"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "기업명(=그룹명)",
+              "field2": "추천 기업명 (company_name)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        352
+      ],
+      "id": "b14f6d41-c7ee-4c45-a656-718179a08e53",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms",
+          "mode": "list",
+          "cachedResultName": "job-finder 운영시트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 927564135,
+          "mode": "list",
+          "cachedResultName": "3-3 운영시트(3/30)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit#gid=927564135"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        304
+      ],
+      "id": "1848bc91-cc2b-4b9c-b6af-6e11cca8a45d",
+      "name": "메일발송시트",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms",
+          "mode": "list",
+          "cachedResultName": "job-finder 운영시트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 927564135,
+          "mode": "list",
+          "cachedResultName": "3-3 운영시트(3/30)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit#gid=927564135"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "기업로고 이미지URL": "={{ $json['로고 URL'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "발송날짜",
+              "displayName": "발송날짜",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "기업로고 이미지URL",
+              "displayName": "기업로고 이미지URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "추천일자",
+              "displayName": "추천일자",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "닉네임",
+              "displayName": "닉네임",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "이메일",
+              "displayName": "이메일",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "추천 기업명 (company_name)",
+              "displayName": "추천 기업명 (company_name)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "추천 공고명 (job_title)",
+              "displayName": "추천 공고명 (job_title)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "레이어 구분",
+              "displayName": "레이어 구분",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "정렬 구분",
+              "displayName": "정렬 구분",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rank",
+              "displayName": "rank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "유저 당 총 추천개수",
+              "displayName": "유저 당 총 추천개수",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "채용공고URL (job_url)",
+              "displayName": "채용공고URL (job_url)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "마감기한 일자 (deadline_date)",
+              "displayName": "마감기한 일자 (deadline_date)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "마감기한 시간 (deadline_time)",
+              "displayName": "마감기한 시간 (deadline_time)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_company_size",
+              "displayName": "job_company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_company_industry",
+              "displayName": "job_company_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_position_name",
+              "displayName": "job_processed_position_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_education_level",
+              "displayName": "job_processed_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_experience_level",
+              "displayName": "job_processed_experience_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_employment_type",
+              "displayName": "job_processed_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_language_required",
+              "displayName": "job_processed_language_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_company_size",
+              "displayName": "user_company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_company_industry",
+              "displayName": "user_company_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_top3_position",
+              "displayName": "user_top3_position",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_education_level",
+              "displayName": "user_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_employment_type",
+              "displayName": "user_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_has_language_score",
+              "displayName": "user_has_language_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        352
+      ],
+      "id": "f19f8e4a-8730-48f6-9208-abf5464d366c",
+      "name": "메일발송시트 업데이트",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        304
+      ],
+      "id": "5020afcd-dd1b-4787-b69b-da21716056a6",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "채용공고 리스트": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "메일발송시트 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "메일발송시트": {
+      "main": [
+        [
+          {
+            "node": "채용공고 리스트",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "메일발송시트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1dec5c09-99fc-48d3-b49d-cc27159f7c12",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "821b790ee90d0166375ac64457e2b5e4d0b401233ff058856ffbade878fa6ef0"
+  },
+  "id": "n6nLnxEOFvE68JpL",
+  "tags": []
+}

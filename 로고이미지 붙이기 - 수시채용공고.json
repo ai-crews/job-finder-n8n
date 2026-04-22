@@ -1,0 +1,332 @@
+{
+  "name": "로고이미지 붙이기 - 수시채용공고",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 채용공고에 로고 이미지 붙이기\n\n전처리된 채용공고 google sheet에서 로드\n",
+        "height": 144,
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "cb83eb65-526b-489f-8d70-233d9608924e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ARn3x-wsL5nyJ69veM7-l3h6SC7JGCNiMvNHZMI_pqk",
+          "mode": "list",
+          "cachedResultName": "채용공고리스트(claw)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ARn3x-wsL5nyJ69veM7-l3h6SC7JGCNiMvNHZMI_pqk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1860327827,
+          "mode": "list",
+          "cachedResultName": "채용공고리스트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ARn3x-wsL5nyJ69veM7-l3h6SC7JGCNiMvNHZMI_pqk/edit#gid=1860327827"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        -176
+      ],
+      "id": "492a2dff-dc31-449d-89d0-867f3f39b773",
+      "name": "채용공고 리스트",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "기업명(=그룹명)",
+              "field2": "기업명"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -112
+      ],
+      "id": "f01d4f63-2ead-4a1a-8c34-dc478ace94a0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM",
+          "mode": "list",
+          "cachedResultName": "수시채용공고목록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "로고URL": "={{ $json['로고 URL'] }}",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "기업명",
+              "displayName": "기업명",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "채용공고명",
+              "displayName": "채용공고명",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "전처리한 직무",
+              "displayName": "전처리한 직무",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "고용형태",
+              "displayName": "고용형태",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "서류마감일",
+              "displayName": "서류마감일",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "채용공고 URL",
+              "displayName": "채용공고 URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "로고URL",
+              "displayName": "로고URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "클릭수",
+              "displayName": "클릭수",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        -112
+      ],
+      "id": "a76c7014-e692-4df0-8241-48c202a4a5bd",
+      "name": "수시채용공고 업데이트",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        -160
+      ],
+      "id": "a4cd396e-b3b0-4f3c-abab-1ccb74c7b77e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM",
+          "mode": "list",
+          "cachedResultName": "수시채용공고목록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1NgUX0IiyH42wVM_GWHpiRSdMOc6je2fIzB1zEijbPfM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -224,
+        -128
+      ],
+      "id": "63458a55-a13b-4bc1-b6bf-33ee52493599",
+      "name": "수시채용공고",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "채용공고 리스트": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "수시채용공고 업데이트",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "수시채용공고",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "수시채용공고": {
+      "main": [
+        [
+          {
+            "node": "채용공고 리스트",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "19399ac2-24d5-47d5-b7dd-7ced6ba7c72f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "821b790ee90d0166375ac64457e2b5e4d0b401233ff058856ffbade878fa6ef0"
+  },
+  "id": "mzjvW8QNhidMX5NG",
+  "tags": []
+}

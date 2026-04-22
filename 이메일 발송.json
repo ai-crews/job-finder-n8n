@@ -1,0 +1,548 @@
+{
+  "name": "이메일 발송",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 맞춤공고 발송 (DRI)\n\n메일 전송 후 기록 필요\n추천로직 결과 믿고 그대로 전송",
+        "height": 336,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "de6c7eec-9300-44b1-8a87-98f84f8937cf",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 발송 결과기록\n\n구글 시트에 기록",
+        "height": 336,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "5232ad52-23a8-47ef-9aa3-3decba20531f",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# 최지혜\n+) DB, 전체 플로우",
+        "height": 112,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "a82b0859-7f0d-4279-96e9-2f164c2cbe89",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allRows = $input.all();\n\n// 1. n8n 내장 라이브러리를 이용해 한국 시간(KST) 설정\nconst now = $now.setZone('Asia/Seoul');\n\n// 2. 날짜 문자열 (YYYY.MM.DD)\nconst todayStr = now.toFormat('yyyy.MM.dd');\n\n// 3. 제목 및 URL 설정 \nconst weekTitle = \"3월 5주차\"; // 직접 하드코딩\n\n// 수시채용공고 URL\nconst myAppUrl = \"https://job-finder-web-production.up.railway.app\";\n\n// D-Day 계산 함수 (Luxon 라이브러리 활용 버전)\nfunction getDDay(deadlineStr) {\n  if (!deadlineStr || deadlineStr === \"9999-12-31\" || deadlineStr === \"\") return \"상시\";\n  const cleanDate = deadlineStr.replace(/\\./g, '-').replace(/\\s/g, '');\n  const today = now.startOf('day'); \n  const targetDate = $now.constructor.fromISO(cleanDate).setZone('Asia/Seoul').startOf('day');\n  const diffDays = Math.floor(targetDate.diff(today, 'days').days);\n\n  if (diffDays === 0) return \"D-Day\";\n  if (diffDays < 0) return \"마감\";\n  return `D-${diffDays}`;\n}\n\n// 중복 제거 및 쉼표 합치기를 수행하는 함수\nconst cleanText = (val) => {\n  if (!val) return \"\";\n  let str = String(val).replace(/[\\[\\]'\"]/g, \"\");\n  let items = str.split(',').map(s => s.trim()).filter(i => i);\n  return [...new Set(items)].join(', '); \n};\n\n// 사용자별 데이터 그룹화\nconst usersMap = {};\n\nfor (const row of allRows) {\n  const data = row.json;\n  const email = data['이메일'];\n  const type = data['레이어 구분'] || \"\"; \n  const sortingCriterion = data['정렬 구분'] || \"\"; \n\n  if (!usersMap[email]) {\n    usersMap[email] = {\n      userName: data['닉네임'] || \"구독자\", \n      userEmail: email,\n      sortingCriterion: sortingCriterion,\n      matchedJobs: [],\n      explorationJobs: []\n    };\n  }\n\n  const jobEntry = {\n    company_name: cleanText(data['추천 기업명 (company_name)']),\n    position_name: cleanText(data['추천 공고명 (job_title)']),\n    job_role: cleanText(data['job_processed_position_name']), \n    employment_type: cleanText(data['job_processed_employment_type']) || \"정규직\",\n    logo_url: data['기업로고 이미지URL'] || \"\",\n    apply_url: data['채용공고URL (job_url)'] || \"#\",\n    deadline: data['마감기한 일자 (deadline_date)'] || \"9999-12-31\", \n    rank: parseInt(data['rank']) || 999\n  };\n\n  if (type.includes(\"맞춤형\")) {\n    usersMap[email].matchedJobs.push(jobEntry);\n  } else if (type.includes(\"탐색형\")) {\n    usersMap[email].explorationJobs.push(jobEntry);\n  }\n}\n\n// 사용자별 정렬 로직\nfor (const email in usersMap) {\n  const user = usersMap[email];\n  const isRecommended = user.sortingCriterion.includes(\"추천순\");\n  const sortFn = (a, b) => isRecommended ? (a.rank - b.rank) : a.deadline.localeCompare(b.deadline);\n  user.matchedJobs.sort(sortFn);\n  user.explorationJobs.sort(sortFn);\n}\n\n// 잡 카드 생성 함수 (스마트 로고 처리)\nfunction generateJobCard(job, userEmail, userName) {\n  const dDay = getDDay(job.deadline);\n  const params = [\n    `url=${encodeURIComponent(job.apply_url)}`,\n    `company=${encodeURIComponent(job.company_name)}`,\n    `job_title=${encodeURIComponent(job.job_role)}`, \n    `recruitment_title=${encodeURIComponent(job.position_name)}`,\n    `source=email`,\n    `user_identifier=${encodeURIComponent(userName)}` \n  ].join('&');\n\n  // GA를 위한 URL\n  const applyUrl = `${myAppUrl}/?${params}`;\n\n  // 로고 URL 검사\n  const isUnreliableUrl = (url) => {\n    if (!url) return true;\n    const forbiddenDomains = ['namu.wiki', 'github.com'];\n    return forbiddenDomains.some(domain => url.includes(domain));\n  };\n\n  // 로고 이미지 없을때\n  const fallbackBox = `\n    <div style=\"width:60px; height:60px; background-color:#ffffff; border:1px solid #E3E8EF; border-radius:8px; display:table; overflow:hidden;\">\n      <div style=\"display:table-cell; vertical-align:middle; text-align:center; font-size:10px; color:#666666; font-weight:bold; padding:2px; line-height:1.2; word-break:break-all;\">\n        ${job.company_name}\n      </div>\n    </div>`;\n\n  // 최종 로고 이미지\n  let logoContent = \"\";\n  if (isUnreliableUrl(job.logo_url)) {\n    logoContent = fallbackBox;\n  } else {\n    // 이미지와 폴백 박스가 겹치지 않도록 구조를 명확히 함\n    logoContent = `\n      <div style=\"width:60px; height:60px; position:relative;\">\n        <img src=\"${job.logo_url}\" width=\"60\" height=\"60\" \n             style=\"border-radius:8px; display:block; object-fit:contain; background-color:#ffffff; border:1px solid #E3E8EF;\"\n             alt=\"${job.company_name}\"\n             onerror=\"this.style.display='none'; this.nextElementSibling.style.display='table';\">\n        <div style=\"display:none; width:60px; height:60px; background-color:#ffffff; border:1px solid #E3E8EF; border-radius:8px; overflow:hidden;\">\n          <div style=\"display:table-cell; vertical-align:middle; text-align:center; font-size:10px; color:#666666; font-weight:bold; padding:2px; line-height:1.2; word-break:break-all;\">\n            ${job.company_name}\n          </div>\n        </div>\n      </div>`;\n  }\n\n  return `\n<table width=\"600\" style=\"width:600px !important; border:1px solid #E3E8EF; background-color:#F9FAFC; margin-bottom:12px; border-radius:10px; border-collapse:separate;\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr><td style=\"padding:18px;\"> \n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n      <tr>\n        <td width=\"60\" valign=\"top\" style=\"padding-right:15px; width:60px !important;\"> \n          ${logoContent}\n        </td>\n        <td valign=\"top\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-family:'Roboto', sans-serif; font-size:14px; line-height:1.8;\"> \n            <tr><td width=\"55\" style=\"color:#888888 !important; white-space:nowrap; text-align:left;\">기업</td><td style=\"font-weight:bold; font-size:16px; color:#333333 !important; padding-left:10px; text-align:left;\">${job.company_name}</td></tr>\n            <tr><td width=\"55\" style=\"color:#888888 !important; white-space:nowrap; text-align:left;\">공고명</td><td style=\"font-size:15px; color:#333333 !important; padding-left:10px; text-align:left;\">${job.position_name}</td></tr>\n            <tr><td width=\"55\" style=\"color:#888888 !important; white-space:nowrap; text-align:left;\">고용형태</td><td style=\"white-space:nowrap; padding-left:10px; text-align:left;\">\n              <span style=\"display:inline-block; color:#007BFF !important; background-color:#E7F3FF !important; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;\">신입</span>&nbsp;\n              <span style=\"display:inline-block; color:#FD7E14 !important; background-color:#FFF3E6 !important; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;\">${job.employment_type}</span>\n            </td></tr>\n            <tr><td width=\"55\" style=\"color:#888888 !important; white-space:nowrap; text-align:left;\">마감일자</td><td style=\"font-weight:bold; color:#333333 !important; white-space:nowrap; padding-left:10px; text-align:left;\">\n              <span style=\"${dDay === '마감' ? 'color:#888888 !important;' : 'color:#D93025 !important;'}\">${dDay}</span>&nbsp;|&nbsp;${job.deadline === \"9999-12-31\" ? \"상시채용\" : job.deadline}\n            </td></tr>\n          </table>\n        </td>\n        <td width=\"75\" align=\"right\" valign=\"bottom\" style=\"width:75px !important; white-space:nowrap;\">\n            <a href=\"${applyUrl}\" target=\"_blank\" style=\"font-family:'Roboto', sans-serif; font-size:12px; color:#333333 !important; text-decoration:none; border-bottom:1px solid #333333; font-weight:bold; white-space:nowrap; display:inline-block;\">바로가기&nbsp;></a>\n        </td>\n      </tr>\n    </table>\n  </td></tr>\n</table>`;\n}\n\n// 5. 최종 HTML 생성\nconst results = [];\nfor (const email in usersMap) {\n  const user = usersMap[email];\n  const badgeStyle = `background:#9BC988 !important; background-image:linear-gradient(#9BC988, #9BC988) !important; color:#000000 !important; font-weight:bold; font-size:14px; padding:10px 15px; border-radius:4px;`;\n  const hrStyle = `border: 0; border-top: 1px solid #EEEEEE; margin: 40px 0;`;\n\n  let matchedHtml = user.matchedJobs.length > 0 \n    ? `<div style=\"${badgeStyle} margin-bottom:15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"left\" style=\"color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;\">📌&nbsp;맞춤형&nbsp;채용공고</td><td align=\"right\" style=\"color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;\">${user.sortingCriterion}</td></tr></table></div>${user.matchedJobs.map(j => generateJobCard(j, user.userEmail, user.userName)).join(\"\")}`\n    : `<div style=\"${badgeStyle} margin-bottom:15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"left\" style=\"color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;\">📌&nbsp;맞춤형&nbsp;채용공고</td><td align=\"right\" style=\"color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;\">${user.sortingCriterion}</td></tr></table></div><div style=\"text-align:center; padding:50px 20px; color:#333333 !important; font-size:15px; background-color:#ffffff; border:1px dashed #E3E8EF; border-radius:10px; margin-bottom:20px;\"><b>이번&nbsp;주는&nbsp;AI기획자,&nbsp;AI&nbsp;리서치&nbsp;관련&nbsp;공고가&nbsp;줄어,<br>찾으시는&nbsp;채용공고가&nbsp;충분하지&nbsp;않을&nbsp;수&nbsp;있어요🥲</b><br><br>대신&nbsp;아래&nbsp;<b>${user.userName}님</b>이&nbsp;눈여겨&nbsp;보면&nbsp;좋을&nbsp;공고를&nbsp;추천해드려요!</div>`;\n\n  const explorationTitle = user.matchedJobs.length > 0 ? `${user.userName}님이&nbsp;눈여겨&nbsp;보면&nbsp;좋을&nbsp;공고를&nbsp;추천해드려요!` : `Job&nbsp;Finder가&nbsp;${user.userName}님께&nbsp;추천하는&nbsp;공고`;\n  const explorationHtml = user.explorationJobs.length > 0 \n    ? `<div style=\"${hrStyle}\"></div><div style=\"font-size:18px; color:#000000 !important; font-weight:bold; margin-top:30px; margin-bottom:15px;\">${explorationTitle}</div><div style=\"${badgeStyle} margin-bottom:15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"left\" style=\"color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;\">📌&nbsp;탐색형&nbsp;채용공고</td><td align=\"right\" style=\"color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;\"></td></tr></table></div>${user.explorationJobs.map(j => generateJobCard(j, user.userEmail, user.userName)).join(\"\")}` \n    : `<div style=\"${hrStyle}\"></div><div style=\"font-size:18px; color:#000000 !important; font-weight:bold; margin-top:30px; margin-bottom:15px;\">${explorationTitle}</div><div style=\"${badgeStyle} margin-bottom:15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"left\" style=\"color:#000000 !important; font-weight:bold; font-size:14px; white-space:nowrap;\">📌&nbsp;탐색형&nbsp;채용공고</td><td align=\"right\" style=\"color:#000000 !important; font-size:11px; font-weight:normal; opacity:0.7; white-space:nowrap;\"></td></tr></table></div><div style=\"text-align:center; padding:50px 20px; color:#333333 !important; font-size:15px; background-color:#ffffff; border:1px dashed #E3E8EF; border-radius:10px; margin-bottom:20px;\"><b>금주&nbsp;탐색형&nbsp;채용공고가&nbsp;존재하지&nbsp;않아요.</b></div>`;\n\n  const headerMent = user.sortingCriterion.includes(\"추천순\") \n    ? `${user.userName}님이&nbsp;설정하신&nbsp;조건에&nbsp;적합한&nbsp;순으로&nbsp;보여드려요!`\n    : `${user.userName}님&nbsp;맞춤형&nbsp;공고를&nbsp;마감기한&nbsp;순으로&nbsp;보여드려요!`;\n\n  const fullHtml = `\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"ko\">\n<head>\n  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n  <meta name=\"viewport\" content=\"width=600\" />\n  <link href=\"https://fonts.googleapis.com/css2?family=Alatsi&family=Roboto:wght@400;700&display=swap\" rel=\"stylesheet\">\n  <style type=\"text/css\">\n    [data-ogsc] .header-badge { background-color:#9BC988 !important; }\n    [data-ogsc] span, [data-ogsc] td, [data-ogsc] div { color:#000000 !important; }\n    .ExternalClass { width:100%; }\n  </style>\n</head>\n<body style=\"margin:0; padding:0; background-color:#F4F4F4; font-family:'Roboto', sans-serif;\">\n  <center>\n    <table width=\"600\" style=\"width:600px !important; background-color:#F4F4F4; padding:20px 0;\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n      <tr><td>\n        <table width=\"600\" style=\"width:600px !important; background-color:#ffffff; margin:0 auto; overflow:hidden; border-collapse:collapse;\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n          <tr><td style=\"background-color:#3E5F44; padding:35px 25px;\">\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n              <tr>\n                <td>\n                  <div style=\"font-size:24px; font-weight:bold; margin-bottom:10px; color:#FFC93E !important;\">🔎&nbsp;${weekTitle}&nbsp;채용공고&nbsp;도착!</div>\n                  <div style=\"font-size:13px; color:#ffffff !important; opacity:0.9;\">'바로가기'를&nbsp;클릭하면&nbsp;더&nbsp;자세한&nbsp;정보를&nbsp;확인하실&nbsp;수&nbsp;있어요.</div>\n                </td>\n                <td align=\"right\" valign=\"bottom\" style=\"font-size:12px; color:#ffffff !important; opacity:0.6;\">${todayStr}</td>\n              </tr>\n            </table>\n          </td></tr>\n          \n          <tr><td style=\"padding:35px 25px;\">\n            <div style=\"font-size:18px; color:#000000 !important; font-weight:bold; margin-bottom:30px;\">${headerMent}</div>\n            ${matchedHtml}\n            ${explorationHtml}\n            \n            <div style=\"${hrStyle}\"></div>\n            <div style=\"text-align:center; margin-top:10px;\">\n              <div style=\"font-size:15px; font-weight:bold; color:#000000 !important; margin-bottom:18px;\">Job&nbsp;Finder는&nbsp;직접&nbsp;선별한&nbsp;수시채용공고도&nbsp;제공하고&nbsp;있어요!</div>\n              <a href=\"${myAppUrl}\" target=\"_blank\" style=\"display:inline-block; background-color:#3E5F44; color:#ffffff !important; padding:16px 35px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:14px;\">수시채용공고&nbsp;보러가기&nbsp;></a>\n            </div>\n\n            <div style=\"text-align:center; margin-top:50px; padding-top:35px; border-top:1px solid #EEEEEE;\">\n              <div style=\"font-size:22px; font-weight:bold; color:#000000 !important; margin-bottom:15px;\">받아&nbsp;본&nbsp;채용공고가&nbsp;어떠셨나요?</div>\n              <div style=\"font-size:14px; color:#666666 !important; line-height:1.7; margin-bottom:18px;\">\n                여러분의&nbsp;이용&nbsp;후기를&nbsp;들려주세요!<br>\n                여러분의&nbsp;취업준비에&nbsp;더&nbsp;도움이&nbsp;되는&nbsp;서비스가&nbsp;되도록&nbsp;노력할게요.\n              </div>\n              <a href=\"https://docs.google.com/forms/d/e/1FAIpQLSdeQcQ9NGEeoWgbHdmI8mV73QOS11zse0-nfuIrTzr3q5MChw/viewform\" target=\"_blank\" style=\"font-size:14px; color:#333333 !important; font-weight:bold; text-decoration:underline;\">서비스&nbsp;피드백하러&nbsp;가기</a>\n            </div>\n          </td></tr>\n\n          <tr><td style=\"background-color:#E8E8E8; padding:45px 25px; text-align:center;\">\n            <div style=\"font-family:'Alatsi', sans-serif; font-size:26px; font-weight:bold; color:#3E5F44 !important; margin-bottom:20px;\">JOB&nbsp;FINDER</div>\n            \n            <div style=\"margin-bottom:25px; line-height:2.2;\">\n              <a href=\"https://www.notion.so/JOB-FINDER-31dba24dd830809482f5c90f68796a89\" target=\"_blank\" style=\"color:#000000 !important; text-decoration:underline; font-weight:bold; font-size:15px;\">JOB&nbsp;FINDER&nbsp;공식&nbsp;페이지</a><br>\n              <a href=\"https://www.notion.so/JOB-FINDER-FAQ-6e2ba24dd8308254972f0166349e4af5?source=copy_link\" target=\"_blank\" style=\"color:#000000 !important; text-decoration:underline; font-weight:bold; font-size:15px;\">FAQ</a>\n            </div>\n            \n            <div style=\"font-size:15px; color:#3E5F44 !important; line-height:1.8;\">\n              <a href=\"https://half-stocking-169.notion.site/JOB-FINDER-314ba24dd83080839d3ad0a5454f9410\" target=\"_blank\" style=\"color:#3E5F44 !important; text-decoration:underline; font-weight:bold; font-size:15px; display:inline-block; margin-bottom:8px;\">Job&nbsp;Finder를&nbsp;만든&nbsp;사람들</a><br>\n              임소현&nbsp;|&nbsp;최지혜&nbsp;|&nbsp;김규연&nbsp;|&nbsp;박수민&nbsp;|&nbsp;이수진<br />\n              최혜지&nbsp;|&nbsp;솔론&nbsp;|&nbsp;현재&nbsp;|&nbsp;황인성&nbsp;|&nbsp;김주은\n            </div>\n\n            <div style=\"margin-top:25px; font-size:11px; color:#999999 !important; line-height:1.6;\">\n              ※&nbsp;공고는&nbsp;발송&nbsp;시점&nbsp;이후에&nbsp;빠르게&nbsp;마감되거나&nbsp;열리지&nbsp;않을&nbsp;수&nbsp;있습니다.&nbsp;관심&nbsp;있는&nbsp;공고는&nbsp;조금&nbsp;더&nbsp;일찍&nbsp;확인해&nbsp;주시면&nbsp;좋아요!\n            </div>\n          </td></tr>\n          \n          <tr><td style=\"background-color:#3E5F44; height:10px;\"></td></tr>\n        </table>\n      </td></tr>\n    </table>\n  </center>\n</body>\n</html>`;\n\n  results.push({ json: { to: user.userEmail, subject: `[Job Finder] ${user.userName}님을 위한 이번 주 맞춤 공고가 도착했습니다!`, html: fullHtml } });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        368
+      ],
+      "id": "51b11302-d213-4f54-9132-410690b95959",
+      "name": "이메일 템플릿 생성"
+    },
+    {
+      "parameters": {
+        "content": "## 최종 결과 출력\n\nGA를 통해서",
+        "height": 336,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "9c3b75a3-77f9-4b4c-b808-c62c0a0f7853",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms",
+          "mode": "list",
+          "cachedResultName": "job-finder 운영시트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 927564135,
+          "mode": "list",
+          "cachedResultName": "3-3 운영시트(3/30)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit#gid=927564135"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -96,
+        336
+      ],
+      "id": "fcb58def-c40d-4572-95d8-aa9186735067",
+      "name": "발송기록 sheet 적재1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        368
+      ],
+      "id": "8aa65628-a8e3-48df-8f13-452c7edd9064",
+      "name": "채용공고 발송",
+      "webhookId": "5246cb07-89a0-429e-9623-59edd6f60b01",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "uBYjaeyvbpXKNeq1",
+          "name": "Gmail account jobfinder"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -320,
+        336
+      ],
+      "id": "db6c8b43-5315-40cc-b724-891e31b2eb5e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms",
+          "mode": "list",
+          "cachedResultName": "job-finder 운영시트",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 927564135,
+          "mode": "list",
+          "cachedResultName": "3-3 운영시트(3/30)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GIjEyq4DiG2nOV8l08YzFLv7ofbZZ1-ACTMOPHzUGms/edit#gid=927564135"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "발송날짜": "={{ $now.setZone('Asia/Seoul').toFormat('yyyy년 MM월 dd일 HH:mm:ss') }}",
+            "이메일": "={{ $('이메일 템플릿 생성').item.json.to }}"
+          },
+          "matchingColumns": [
+            "이메일"
+          ],
+          "schema": [
+            {
+              "id": "발송날짜",
+              "displayName": "발송날짜",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "기업로고 이미지URL",
+              "displayName": "기업로고 이미지URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "추천일자",
+              "displayName": "추천일자",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "닉네임",
+              "displayName": "닉네임",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "이메일",
+              "displayName": "이메일",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "추천 기업명 (company_name)",
+              "displayName": "추천 기업명 (company_name)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "추천 공고명 (job_title)",
+              "displayName": "추천 공고명 (job_title)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "레이어 구분",
+              "displayName": "레이어 구분",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "정렬 구분",
+              "displayName": "정렬 구분",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "rank",
+              "displayName": "rank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "유저 당 총 추천개수",
+              "displayName": "유저 당 총 추천개수",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "채용공고URL (job_url)",
+              "displayName": "채용공고URL (job_url)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "마감기한 일자 (deadline_date)",
+              "displayName": "마감기한 일자 (deadline_date)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "마감기한 시간 (deadline_time)",
+              "displayName": "마감기한 시간 (deadline_time)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_company_size",
+              "displayName": "job_company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_company_industry",
+              "displayName": "job_company_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_position_name",
+              "displayName": "job_processed_position_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_education_level",
+              "displayName": "job_processed_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_experience_level",
+              "displayName": "job_processed_experience_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_employment_type",
+              "displayName": "job_processed_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "job_processed_language_required",
+              "displayName": "job_processed_language_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_company_size",
+              "displayName": "user_company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_company_industry",
+              "displayName": "user_company_industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_top3_position",
+              "displayName": "user_top3_position",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_education_level",
+              "displayName": "user_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_employment_type",
+              "displayName": "user_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "user_has_language_score",
+              "displayName": "user_has_language_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        368
+      ],
+      "id": "16ad0c76-adfb-4e84-b0b6-b35519a2b5fb",
+      "name": "발송기록 수정",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3sIrltyLmUmA3UI",
+          "name": "Google Sheets account_Jihye"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "이메일 템플릿 생성": {
+      "main": [
+        [
+          {
+            "node": "채용공고 발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발송기록 sheet 적재1": {
+      "main": [
+        [
+          {
+            "node": "이메일 템플릿 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "채용공고 발송": {
+      "main": [
+        [
+          {
+            "node": "발송기록 수정",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "발송기록 sheet 적재1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "65975132-a988-4241-a0dd-0a77c048eb37",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "821b790ee90d0166375ac64457e2b5e4d0b401233ff058856ffbade878fa6ef0"
+  },
+  "id": "5zzGx1e0DDRaXJBK",
+  "tags": []
+}

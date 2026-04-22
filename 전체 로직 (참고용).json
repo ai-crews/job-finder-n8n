@@ -1,0 +1,3253 @@
+{
+  "name": "전체 로직 (참고용)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 매칭필터링 (추천엔진)\n\n",
+        "height": 432,
+        "width": 660
+      },
+      "id": "6ea92c13-926b-44bf-b711-972394ed20ec",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        448
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 맞춤공고 발송 (DRI)\n\n메일 전송 후 기록 필요\n추천로직 결과 믿고 그대로 전송",
+        "height": 336,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1504,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "c539943d-6a7d-4770-9ad4-624a183c8cc0",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 발송 결과기록\n\n구글 시트에 기록",
+        "height": 336,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2096,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "3ae11869-353b-401f-abca-994984917581",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 지원자 로드 \n",
+        "height": 432,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "ade24148-3afc-4c3a-ad06-b45587c08981",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "# 황인성, 김주은\n김주은 - DRI",
+        "height": 96,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        672,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "d60aa07d-9462-49d0-99cf-676b094534a4",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "# 최지혜\n+) DB, 전체 플로우",
+        "height": 112,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1600,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "a5e33384-39ad-4c42-9465-9958715d4dcf",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1qwpmPmLES75MyaoOxb87qkseZVEerfvXTx9vm1aXBmg",
+          "mode": "list",
+          "cachedResultName": "Job Finder 구독신청v4_수정(응답)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qwpmPmLES75MyaoOxb87qkseZVEerfvXTx9vm1aXBmg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 129596240,
+          "mode": "list",
+          "cachedResultName": "설문지 응답 시트1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qwpmPmLES75MyaoOxb87qkseZVEerfvXTx9vm1aXBmg/edit#gid=129596240"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        576
+      ],
+      "id": "941ac1e0-0654-4672-9324-b449d3e7591e",
+      "name": "지원자 로드",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "69TdM865fXvcIkOD",
+          "name": "Google Sheets account_aicrews"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// job_matcher.py를 그대로 JavaScript로 변환\n// ============================================\n\n// === 데이터 가져오기 ===\nconst users = $('지원자 로드').all();\nconst jobPostings = $('수시 채용공고').all();\n\n// 채용공고 데이터를 json으로 변환\nconst jobData = jobPostings.map(item => item.json);\n\nconsole.log(`총 ${jobData.length}개의 채용공고를 로드했습니다.`);\n\n// === company_name_mapping (회사명 매핑) ===\nconst companyNameMapping = {\n  // 한화 그룹\n  \"한화에어로스페이스\": [\"한화에어로스페이스\"],\n  \"한화시스템/방산\": [\"한화시스템/방산\", \"한화시스템\", \"한화시스템/ICT\"],\n  \"한화솔루션/케미칼\": [\"한화솔루션/케미칼\", \"한화솔루션\", \"한화케미칼\"],\n  \"한화솔루션/큐셀\": [\"한화솔루션/큐셀\", \"한화솔루션\", \"한화큐셀\"],\n  \"한화생명\": [\"한화생명\"],\n  \"한화손해보험\": [\"한화손해보험\"],\n  // 네이버 그룹\n  \"NAVER WEBTOON\": [\"NAVER WEBTOON\", \"네이버웹툰\"],\n  // 카카오 그룹\n  \"카카오\": [\"카카오\", \"Kakao\"],\n};\n\n// === company_mappings (그룹별 회사 목록) ===\nconst companyMappings = {\n  \"삼성\": {\n    key: \"삼성 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"삼성전자 DX부문\", \"삼성전자 DS부문\", \"삼성SDI\", \"삼성전기\", \"삼성SDS\",\n      \"삼성바이오로직스\", \"삼성생명\", \"삼성화재\", \"삼성중공업\", \"삼성E&A\",\n      \"삼성물산 건설부문\", \"삼성물산 상사부문\", \"삼성물산 리조트부문\",\n      \"삼성물산 패션부문\", \"호텔신라\", \"제일기획\", \"에스원\"\n    ]\n  },\n  \"SK\": {\n    key: \"SK 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"SK 텔레콤\", \"SK 하이닉스\", \"SK 이노베이션\", \"SK 바이오팜\",\n      \"SK 실트론\", \"SKC\", \"SK 스퀘어\", \"SK 주식회사\"\n    ]\n  },\n  \"현대자동차\": {\n    key: \"현대자동차 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"기아\", \"현대모비스\"]\n  },\n  \"LG\": {\n    key: \"LG 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"LG이노텍\", \"LG화학\", \"LG생활건강\", \"LG에너지솔루션\",\n      \"LG유플러스\", \"LG AI연구원\", \"LG CNS\"\n    ]\n  },\n  \"롯데\": {\n    key: \"롯데 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"롯데칠성음료\", \"롯데백화점\", \"롯데마트 • 롯데슈퍼\", \"롯데하이마트\",\n      \"롯데홈쇼핑\", \"롯데면세점\", \"롯데호텔\", \"롯데월드\", \"롯데글로벌로지스\",\n      \"대흥기획\", \"롯데물산\", \"롯데이노베이트\", \"롯데렌탈\", \"롯데케미칼\",\n      \"롯데건설\", \"롯데에너지머티리얼즈\"\n    ]\n  },\n  \"한화\": {\n    key: \"한화 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"한화에어로스페이스\", \"한화시스템/방산\", \"한화솔루션/케미칼\",\n      \"한화솔루션/큐셀\", \"한화생명\", \"한화손해보험\"\n    ]\n  },\n  \"CJ\": {\n    key: \"CJ 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\n      \"CJ제일제당\", \"CJ프레시웨이\", \"CJ ENM\", \"CJ CGV\",\n      \"CJ대한통운\", \"CJ올리브네트웍스\", \"CJ올리브영\", \"TVING\"\n    ]\n  },\n  \"카카오\": {\n    key: \"카카오 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"카카오\", \"카카오뱅크\", \"카카오페이\", \"카카오모빌리티\"]\n  },\n  \"쿠팡\": {\n    key: \"쿠팡 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"쿠팡\"]\n  },\n  \"네이버\": {\n    key: \"NAVER 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"NAVER\", \"NAVER Cloud\", \"NAVER WEBTOON\", \"NAVER FINANCIAL\", \"NAVERWORKS\"]\n  },\n  \"신한금융\": {\n    key: \"신한금융그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"신한은행\", \"신한카드\", \"신한투자증권\", \"신한생명\"]\n  },\n  \"KB금융\": {\n    key: \"KB금융그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"KB국민은행\", \"KB국민카드\", \"KB증권\", \"KB손해보험\"]\n  },\n  \"하나금융\": {\n    key: \"하나금융그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"하나은행\", \"하나카드\", \"하나증권\", \"하나손해보험\"]\n  },\n  \"우리금융\": {\n    key: \"우리금융그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"우리은행\", \"우리카드\", \"우리증권\"]\n  },\n  \"토스\": {\n    key: \"토스그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"토스\", \"토스뱅크\", \"토스페이먼츠\", \"토스증권\"]\n  },\n  \"우아한형제들\": {\n    key: \"우아한형제들 그룹에서 관심 있는 회사를 선택해주세요.\",\n    companies: [\"우아한형제들\"]\n  }\n};\n\n// ============================================\n// 헬퍼 함수들 (job_matcher.py와 동일)\n// ============================================\n\nfunction _parseEmploymentTypes(employmentStr) {\n  /** 고용형태 문자열 파싱 */\n  if (!employmentStr) return [];\n  return employmentStr.split(\",\").map(emp => emp.trim()).filter(emp => emp);\n}\n\nfunction _simpleMatch(jobField, targetJob) {\n  /** 단순 문자열 매칭 */\n  if (!jobField || !targetJob) return false;\n  return targetJob.toLowerCase().replace(/\\s/g, \"\") \n    .includes(jobField.toLowerCase().replace(/\\s/g, \"\")) ||\n    jobField.toLowerCase().replace(/\\s/g, \"\")\n    .includes(targetJob.toLowerCase().replace(/\\s/g, \"\"));\n}\n\nfunction _isJobMatch(job, targetJobs) {\n  /** 직무 매칭 여부 판단 */\n  if (!targetJobs || targetJobs.length === 0) return true;\n  \n  const processedPosition = job.processed_position_name || \"\";\n  for (const targetJob of targetJobs) {\n    if (!targetJob) continue;\n    if (processedPosition && processedPosition !== \"미분류\") {\n      if (_simpleMatch(processedPosition, targetJob)) {\n        return true;\n      }\n    }\n  }\n  return false;\n}\n\nfunction _isEducationMatch(userEduList, jobEducation) {\n  for (const userEdu of userEduList) {\n    // 양방향 포함 체크\n    if (jobEducation.includes(userEdu) || userEdu.includes(jobEducation)) {\n      return true;\n    }\n    \n    // 학사 4년 특수 케이스\n    if ((userEdu.includes(\"학사\") && userEdu.includes(\"4년\")) &&\n        (jobEducation.includes(\"대학\") && jobEducation.includes(\"4년\"))) {\n      return true;\n    }\n  }\n  return false;\n}\n\nfunction isPreferredCompany(targetCompanies, jobCompany) {\n  /** 희망기업 여부 확인 */\n  if (!targetCompanies || targetCompanies.length === 0 || !jobCompany) {\n    return false;\n  }\n  \n  // 1. 직접 매칭\n  if (targetCompanies.includes(jobCompany)) return true;\n  \n  // 2. 매핑 테이블을 통한 매칭\n  for (const targetCompany of targetCompanies) {\n    let mappedNames = companyNameMapping[targetCompany] || [];\n    if (typeof mappedNames === \"string\") mappedNames = [mappedNames];\n    \n    for (const mappedName of mappedNames) {\n      if (mappedName === jobCompany) return true;\n      // 부분 매칭\n      if (mappedName.toLowerCase().includes(jobCompany.toLowerCase()) ||\n          jobCompany.toLowerCase().includes(mappedName.toLowerCase())) {\n        return true;\n      }\n    }\n  }\n  \n  // 3. 기본 부분 문자열 매칭\n  const jobCompanyClean = jobCompany.toLowerCase().replace(/[\\s\\/]/g, \"\");\n  for (const targetCompany of targetCompanies) {\n    const targetClean = targetCompany.toLowerCase().replace(/[\\s\\/]/g, \"\");\n    if (targetClean.includes(jobCompanyClean) || jobCompanyClean.includes(targetClean)) {\n      return true;\n    }\n    \n    if (jobCompany.includes(\"/\")) {\n      const companyBase = jobCompany.split(\"/\")[0].toLowerCase().replace(/\\s/g, \"\");\n      if (targetClean.includes(companyBase) || companyBase.includes(targetClean)) {\n        return true;\n      }\n    }\n  }\n  \n  return false;\n}\n\nfunction countNulls(jobDict) {\n  /** 채용공고의 NULL 개수 계산 */\n  const checkFields = [\"min_education_level\", \"min_experience_level\", \"employment_type\"];\n  return checkFields.filter(field => \n    !jobDict[field] || jobDict[field] === \"확인불가\"\n  ).length;\n}\n\nfunction getJobRolePriority(targetJobs, job) {\n  /** 직무 우선순위 계산 (낮을수록 우선순위 높음) */\n  for (let i = 0; i < targetJobs.length; i++) {\n    if (targetJobs[i] && _isJobMatch(job, [targetJobs[i]])) {\n      return i + 1;\n    }\n  }\n  return 5;\n}\n\nfunction getPriority(userValues, jobValue) {\n  /** 공통 우선순위 계산 함수 */\n  if (!jobValue || jobValue === \"확인불가\") return 2;\n  if (!userValues || userValues.length === 0) return 3;\n  return userValues.includes(jobValue) ? 1 : 3;\n}\n\nfunction _extractTargetCompanies(userData) {\n  /** 사용자가 관심있는 회사들 추출 */\n  const companies = [];\n  \n  for (const [groupName, groupInfo] of Object.entries(companyMappings)) {\n    const groupSelection = userData[groupInfo.key] || \"\";\n    if (groupSelection && groupSelection.trim()) {\n      if (groupSelection.includes(\"전체\")) {\n        companies.push(...groupInfo.companies);\n        console.log(`'${groupName} 전체' 선택됨 → ${groupInfo.companies.length}개 회사 추가`);\n      } else {\n        const selected = groupSelection.split(\",\").map(c => c.trim()).filter(c => c);\n        companies.push(...selected);\n        console.log(`'${groupName}' 개별 선택 → ${selected}`);\n      }\n    }\n  }\n  \n  return [...new Set(companies)]; // 중복 제거\n}\n\n// ============================================\n// 필터링 함수들 (job_matcher.py와 동일)\n// ============================================\n\nfunction applyBasicFilters(userData, jobPostings) {\n  /** 1단계 필터링: 신입 공고만 추출 */\n  const filteredJobs = [];\n  const careerPreference = userData[\"찾고 계신 공고의 경력 조건을 선택해주세요.\"] || \"\";\n  \n  for (const job of jobPostings) {\n    const experienceLevel = job.min_experience_level || \"\";\n    if (careerPreference.includes(\"신입\")) {\n      if ([\"신입\", \"확인불가\", \"\"].includes(experienceLevel)) {\n        filteredJobs.push(job);\n      }\n    } else {\n      filteredJobs.push(job);\n    }\n  }\n  return filteredJobs;\n}\n\nfunction filterByEmploymentType(userData, jobPostings) {\n  /** 2단계 필터링: 고용형태 */\n  const filteredJobs = [];\n  const targetEmploymentTypes = _parseEmploymentTypes(\n    userData[\"희망 고용 형태 (복수선택)\"] || \"\"\n  );\n  \n  for (const job of jobPostings) {\n    const employmentType = job.employment_type || \"\";\n    if (!employmentType ||\n        employmentType === \"확인불가\" ||\n        targetEmploymentTypes.length === 0 ||\n        targetEmploymentTypes.includes(employmentType)) {\n      filteredJobs.push(job);\n    }\n  }\n  return filteredJobs;\n}\n\nfunction filterByJobRole(userData, jobPostings) {\n  /** 3단계 필터링: 직무 */\n  const filteredJobs = [];\n  let targetJobs = [\n    userData[\"희망 직무 1순위 (필수응답)\"] || \"\",\n    userData[\"희망 직무 2순위 \"] || \"\",  // 공백 포함!\n    userData[\"희망 직무 3순위 \"] || \"\",  // 공백 포함!\n  ];\n  targetJobs = targetJobs.map(job => job.trim()).filter(job => job);\n  \n  for (const job of jobPostings) {\n    if (targetJobs.length === 0 || _isJobMatch(job, targetJobs)) {\n      filteredJobs.push(job);\n    }\n  }\n  return filteredJobs;\n}\n\nfunction filterByEducation(userData, jobPostings) {\n  /** 4단계 필터링: 학력 */\n  const filteredJobs = [];\n  const userEducation = userData[\"찾고 계신 공고의 학력 조건을 선택해주세요. (졸업예정자도 선택 가능, 복수선택)\"] || \"\";\n  const userEduList = userEducation.split(\",\").map(edu => edu.trim()).filter(edu => edu);\n  \n  for (const job of jobPostings) {\n    const education = job.min_education_level || \"\";\n    if (!education ||\n        education === \"학력_확인불가\" ||\n        userEduList.length === 0 ||\n        _isEducationMatch(userEduList, education)) {\n      filteredJobs.push(job);\n    }\n  }\n  return filteredJobs;\n}\n\n// ============================================\n// 메인 매칭 함수 (job_matcher.py의 match_jobs_for_user)\n// ============================================\n\nfunction matchJobsForUser(userData, jobData, topN = 100) {\n  /** 사용자에게 맞는 채용공고 매칭 */\n  console.log(\"=== 필터링 시작 ===\");\n  \n  // 사용자 선호도 추출\n  const targetCompanies = _extractTargetCompanies(userData);\n  let targetJobs = [\n    userData[\"희망 직무 1순위 (필수응답)\"] || \"\",\n    userData[\"희망 직무 2순위 \"] || \"\",\n    userData[\"희망 직무 3순위 \"] || \"\",\n  ];\n  targetJobs = targetJobs.map(job => job.trim()).filter(job => job);\n  const targetEmploymentTypes = _parseEmploymentTypes(\n    userData[\"희망 고용 형태 (복수선택)\"] || \"\"\n  );\n  \n  console.log(`사용자 희망 직무: ${targetJobs}`);\n  console.log(`사용자 희망 회사: ${targetCompanies}`);\n  console.log(`사용자 희망 고용형태: ${targetEmploymentTypes}`);\n  \n  // 단계별 필터링\n  const step1Jobs = applyBasicFilters(userData, jobData);\n  console.log(`1단계(경력) 후: ${step1Jobs.length}개 공고`);\n  \n  const step2Jobs = filterByEmploymentType(userData, step1Jobs);\n  console.log(`2단계(고용형태) 후: ${step2Jobs.length}개 공고`);\n  \n  const step3Jobs = filterByJobRole(userData, step2Jobs);\n  console.log(`3단계(직무) 후: ${step3Jobs.length}개 공고`);\n  \n  const finalJobs = filterByEducation(userData, step3Jobs);\n  console.log(`4단계(학력) 후: ${finalJobs.length}개 공고`);\n  \n  if (finalJobs.length === 0) {\n    console.log(\"필터링 후 추천할 공고가 없습니다\");\n    return [];\n  }\n  \n  // 희망기업 분리\n  const preferredJobs = [];\n  const otherJobs = [];\n  \n  for (const job of finalJobs) {\n    const companyName = job.company_name || job.company_name_from_file || \"\";\n    const isPreferred = isPreferredCompany(targetCompanies, companyName);\n    \n    if (isPreferred) {\n      preferredJobs.push(job);\n    } else {\n      otherJobs.push(job);\n    }\n  }\n  \n  console.log(`희망기업 공고: ${preferredJobs.length}개, 기타 공고: ${otherJobs.length}개`);\n  \n  // 정렬용 키 함수\n  const userEducation = userData[\"찾고 계신 공고의 학력 조건을 선택해주세요. (졸업예정자도 선택 가능, 복수선택)\"] || \"\";\n  const userEduList = userEducation.split(\",\").map(edu => edu.trim()).filter(edu => edu);\n  \n  function sortKey(job) {\n    return [\n      countNulls(job),\n      getJobRolePriority(targetJobs, job),\n      getPriority(userEduList, job.min_education_level || \"\"),\n      getPriority(targetEmploymentTypes, job.employment_type || \"\"),\n      job.company_name || \"\"\n    ];\n  }\n  \n  // 튜플 비교 정렬 함수\n  function compareSortKeys(a, b) {\n    const keyA = sortKey(a);\n    const keyB = sortKey(b);\n    for (let i = 0; i < keyA.length; i++) {\n      if (keyA[i] < keyB[i]) return -1;\n      if (keyA[i] > keyB[i]) return 1;\n    }\n    return 0;\n  }\n  \n  preferredJobs.sort(compareSortKeys);\n  otherJobs.sort(compareSortKeys);\n  const topJobs = [...preferredJobs, ...otherJobs].slice(0, topN);\n  \n  console.log(`추천 완료: ${topJobs.length}개 공고 선정`);\n  \n  return topJobs.map(job => ({\n    job: job,\n    is_preferred_company: isPreferredCompany(\n      targetCompanies,\n      job.company_name || job.company_name_from_file || \"\"\n    ),\n    score: 100\n  }));\n}\n\n// ============================================\n// 실행\n// ============================================\n\nconst results = [];\n\nfor (const userItem of users) {\n  const userData = userItem.json;\n  \n  // 사용자 정보 추출 (필드명 끝에 공백 주의!)\n  const userName = userData[\"메일에 표시될 닉네임을 입력해주세요.\\n입력하신 닉네임은 메일에서 이렇게 사용돼요.\\n예: 📬 홍길동님, 3월 1주차 채용공고가 도착했어요!\"] || userData[\"성함\"] || \"\";\n  const userEmail = userData[\"이메일 주소\"] || \"\";\n  \n  const matchedJobs = matchJobsForUser(userData, jobData);\n  \n  results.push({\n    json: {\n      user_name: userName,\n      user_email: userEmail,\n      matched_jobs: matchedJobs,\n      matched_count: matchedJobs.length,\n      preferred_count: matchedJobs.filter(j => j.is_preferred_company).length,\n      top_5_jobs: matchedJobs.slice(0, 5).map(m => ({\n        company: m.job.company_name || m.job.company_name_from_file || \"\",\n        position: m.job.position_name || \"\",\n        url: m.job.apply_url || \"\",\n        is_preferred: m.is_preferred_company ? \"⭐\" : \"\"\n      }))\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        576
+      ],
+      "id": "585ca13b-d2c0-49f4-a9f7-4002c8d99d07",
+      "name": "매칭 필터링",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const matchedData = $input.all();\n\n// 1. 동적 날짜 및 주차 계산 로직\nconst now = new Date();\nconst currentMonth = now.getMonth() + 1; \nconst currentDay = now.getDate();\nconst currentWeek = Math.ceil(currentDay / 7); \nconst weekTitle = `${currentMonth}월 ${currentWeek}주차`;\nconst todayStr = `${now.getFullYear()}.${String(currentMonth).padStart(2, '0')}.${String(currentDay).padStart(2, '0')}`;\n\nfunction generateJobCard(jobMatch) {\n  const job = jobMatch.job || jobMatch;\n  const isPreferred = jobMatch.is_preferred_company;\n  const starMark = isPreferred ? \"⭐ \" : \"\";\n  \n  // 🎯 데이터 추출 (image_c8eae0.jpg 컬럼 기준 매칭)\n  const companyName = job.company_name || \"기업명 미상\"; \n  const recruitmentTitle = job.position_name || \"공고 참조\";     // 채용공고명 (B컬럼)\n  const jobTitle = job.processed_position_name || \"직무 미분류\"; // 직무명 (C컬럼)\n  \n  const employmentType = job.employment_type || \"확인불가\";\n  const deadline = job.deadline || job.application_deadline_date || \"상시채용\";\n  const logoUrl = job.logo_url || job.logo || \"\";\n  const rawApplyUrl = job.apply_url || job.application_link || \"#\";\n\n  // 🎯 리다이렉트 URL 조립 (3가지 파라미터 포함)\n  const myAppUrl = \"http://localhost:3000\"; \n  const encodedDest = encodeURIComponent(rawApplyUrl);\n  const encodedCompany = encodeURIComponent(companyName);\n  const encodedJob = encodeURIComponent(jobTitle);\n  const encodedRecruitment = encodeURIComponent(recruitmentTitle);\n\n  // index.ejs에서 받을 변수명과 100% 일치시켰습니다.\n  // --- 🎯 [n8n 수정] 출처(source) 파라미터 추가 ---\nconst source = \"email\"; // 이메일 유입임을 명시\nconst applyUrl = `${myAppUrl}/?url=${encodedDest}&company=${encodedCompany}&job_title=${encodedJob}&recruitment_title=${encodedRecruitment}&source=${source}`;\n\n  return `\n<table width=\"100%\" style=\"border:1px solid #e1e4e8; background:#ffffff; margin-bottom:20px; border-radius:12px; border-collapse:separate;\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr><td style=\"padding:20px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n      <tr>\n        <td width=\"80\" valign=\"top\" style=\"padding-right:15px;\">\n          ${logoUrl ? `<img src=\"${logoUrl}\" width=\"80\" style=\"border-radius:8px; border:1px solid #eee;\">` : \n          `<div style=\"width:80px; height:80px; background:#f0f2f5; border-radius:8px; text-align:center; line-height:80px; font-size:12px; color:#999; border:1px solid #eee;\">LOGO</div>`}\n        </td>\n        <td valign=\"top\">\n          <div style=\"font-weight:bold; font-size:16px; color:#333; margin-bottom:8px;\">${starMark}${companyName}</div>\n          <table width=\"100%\" style=\"font-size:14px; line-height:1.6; color:#555;\">\n            <tr><td width=\"70\" style=\"color:#888;\"><b>모집부문</b></td><td>${recruitmentTitle}</td></tr>\n            <tr><td style=\"color:#888;\"><b>직무명</b></td><td>${jobTitle}</td></tr>\n            <tr><td style=\"color:#888;\"><b>고용형태</b></td><td><span style=\"background:#e6f7ed; color:#2c8a3c; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;\">${employmentType}</span></td></tr>\n            <tr><td style=\"color:#888;\"><b>접수마감</b></td><td>${deadline} <span style=\"color:#d93025; font-weight:bold;\">(D-Day)</span></td></tr>\n          </table>\n        </td>\n      </tr>\n    </table>\n    <a href=\"${applyUrl}\" target=\"_blank\" style=\"display:block; background:#f8f9fa; border:1px solid #dee2e6; padding:12px; text-align:center; text-decoration:none; color:#495057; border-radius:8px; margin-top:15px; font-weight:bold; font-size:14px;\">바로가기</a>\n  </td></tr>\n</table>`;\n}\n\nconst results = [];\n\nfor (const item of matchedData) {\n  const userData = item.json;\n  const userName = userData.user_name || \"구독자\";\n  const matchedJobs = userData.filtered_jobs || userData.matched_jobs || [];\n  const jobCardsHtml = matchedJobs.slice(0, 10).map(j => generateJobCard(j)).join(\"\\n\");\n  \n  const fullHtml = `\n<!DOCTYPE html>\n<html>\n<body style=\"margin:0; padding:0; background-color:#f4f7f6; font-family:'Apple SD Gothic Neo', sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f7f6; padding:20px 0;\">\n    <tr><td>\n      <table width=\"600\" style=\"background:#ffffff; margin:0 auto; border-radius:16px; overflow:hidden;\" cellpadding=\"0\" cellspacing=\"0\">\n        <tr><td style=\"background:#2c8a3c; padding:30px 25px; color:#ffffff;\">\n          <div style=\"font-size:24px; font-weight:bold; margin-bottom:8px;\">🎯 ${weekTitle} 채용공고 도착!</div>\n          <div style=\"font-size:15px; opacity:0.9;\">'바로가기'를 누르면 자세한 정보를 볼 수 있어요!</div>\n        </td></tr>\n        \n        <tr><td style=\"background:#fff9db; padding:12px 25px; border-bottom:1px solid #fff3bf;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n            <tr>\n              <td align=\"left\" style=\"font-size:13px; color:#856404;\">\n                ⚠️ <b>정확한 정보</b>는 회사 홈페이지를 통해 확인해 주세요.\n              </td>\n              <td align=\"right\" style=\"font-size:12px; color:#adb5bd; font-family:Arial, sans-serif;\">\n                ${todayStr}\n              </td>\n            </tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"padding:30px 25px 10px 25px;\">\n          <div style=\"font-size:17px; color:#333;\"><b>${userName}님</b>에게 가장 적합한 채용공고</div>\n        </td></tr>\n\n        <tr><td style=\"padding:10px 25px;\">${jobCardsHtml}</td></tr>\n\n        <tr><td style=\"padding:20px 25px;\">\n          <table width=\"100%\" style=\"background:#effaf3; border:1px solid #d3f9e8; border-radius:12px; text-align:center; padding:25px;\">\n            <tr><td>\n              <div style=\"font-size:30px; margin-bottom:15px;\">🤔</div>\n              <div style=\"font-size:18px; font-weight:bold; color:#333; margin-bottom:10px;\">받아본 채용공고 어떠셨나요?</div>\n              <div style=\"font-size:14px; color:#666; line-height:1.6; margin-bottom:20px;\">\n                여러분의 소중한 의견을 들려주세요!<br>Hoper 분들의 피드백을 반영하여 더 나은 서비스로 찾아뵙겠습니다.\n              </div>\n              <a href=\"https://forms.gle/your-form-link\" style=\"display:inline-block; background:#333; color:#fff; padding:12px 25px; text-decoration:none; border-radius:8px; font-weight:bold; font-size:14px;\">💌 피드백 하러가기</a>\n            </td></tr>\n          </table>\n        </td></tr>\n\n        <tr><td style=\"background:#2c8a3c; padding:40px 25px; text-align:center; color:#ffffff;\">\n          <div style=\"display:inline-block; border:2px solid #ffffff; border-radius:30px; padding:8px 25px; font-size:20px; font-weight:bold; margin-bottom:20px;\">JOB FINDER</div>\n          <div style=\"font-size:14px; margin-bottom:15px; opacity:0.9;\">당신의 성공적인 커리어를 응원합니다 🎸</div>\n          <div style=\"font-size:11px; opacity:0.5;\">© 2026 JOB FINDER. All rights reserved.</div>\n        </td></tr>\n      </table>\n    </td></tr>\n  </table>\n</body>\n</html>`;\n\n  results.push({\n    json: {\n      to: userData.user_email,\n      subject: `[공고추천] ${userName}님, 맞춤형 채용공고를 확인해보세요!`,\n      html: fullHtml\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1744,
+        656
+      ],
+      "id": "26cb4e25-f170-439e-8d9e-35acd2ccdd70",
+      "name": "이메일 템플릿 생성"
+    },
+    {
+      "parameters": {
+        "jsCode": "// [데이터 평탄화] 전체 필드 포함 버전\nconst allRows = [];\nconst matchedDataList = $input.all();\n\nfor (let i = 0; i < matchedDataList.length; i++) {\n  const matchedData = matchedDataList[i].json;\n  const jobs = matchedData.matched_jobs || [];\n  const totalCount = jobs.length; // 레이어 구분 없이 총 공고 개수\n\n  for (let rank = 0; rank < jobs.length; rank++) {\n    const jobMatch = jobs[rank];\n    const actualJob = jobMatch.job || jobMatch;\n\n    allRows.push({\n      json: {\n        \"지원자성함\": matchedData.user_name || \"\",\n        \"기업로고 이미지URL\": \"\", // 이메일 보내는 곳에서 추가 예정\n        \"이메일주소\": matchedData.user_email || \"\",\n        \"추천 기업명 (company_name)\": actualJob.company_name || \"\",\n        \"추천 공고명 (job_title)\": actualJob.job_title || \"\",\n        \"레이어 구분(맞춤형/마감순형/탐색형)\": \"\",  // 추후 추가 예정 (맞춤형 / 마감순형 / 탐색형)\n        \"rank\": rank + 1,\n        \"총 공고개수 (레이어 구분 없이)\": totalCount,\n        \"채용공고URL (job_url)\": actualJob.job_url || \"\",\n        \"application_deadline_date\": actualJob.application_deadline_date || \"\",\n        \"application_deadline_time\": actualJob.application_deadline_time || \"\",\n        \"company_size\": actualJob.company_size || \"\",\n        \"industry\": actualJob.industry || \"\",\n        \"processed_position_name\": actualJob.processed_position_name || [],\n        \"processed_education_level\": actualJob.processed_education_level || [],\n        \"processed_experience_level\": actualJob.processed_experience_level || \"\",\n        \"processed_employment_type\": actualJob.processed_employment_type || [],\n        \"processed_language_required\": actualJob.processed_language_required || \"\",\n      }\n    });\n  }\n}\n\nreturn allRows;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        576
+      ],
+      "id": "0e92ee1c-223c-4d59-acf4-82797940ce61",
+      "name": "발송기록 데이터 평탄화"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA",
+          "mode": "list",
+          "cachedResultName": "job-finder 발송기록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2060114356,
+          "mode": "list",
+          "cachedResultName": "Deadline-based recruitment",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit#gid=2060114356"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "지원자성함",
+              "displayName": "지원자성함",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "기업로고 이미지URL",
+              "displayName": "기업로고 이미지URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "이메일주소",
+              "displayName": "이메일주소",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "추천 기업명 (company_name)",
+              "displayName": "추천 기업명 (company_name)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "추천 공고명 (job_title)",
+              "displayName": "추천 공고명 (job_title)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "레이어 구분(맞춤형/마감순형/탐색형)",
+              "displayName": "레이어 구분(맞춤형/마감순형/탐색형)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rank",
+              "displayName": "rank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "총 공고개수 (레이어 구분 없이)",
+              "displayName": "총 공고개수 (레이어 구분 없이)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "채용공고URL (job_url)",
+              "displayName": "채용공고URL (job_url)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "application_deadline_date",
+              "displayName": "application_deadline_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "application_deadline_time",
+              "displayName": "application_deadline_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_size",
+              "displayName": "company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_position_name",
+              "displayName": "processed_position_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_education_level",
+              "displayName": "processed_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_experience_level",
+              "displayName": "processed_experience_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_employment_type",
+              "displayName": "processed_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "processed_language_required",
+              "displayName": "processed_language_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1168,
+        576
+      ],
+      "id": "69eb030e-87b1-4782-94b8-7810bf915e0b",
+      "name": "발송기록 sheet 적재",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 채용공고 로드\n\n전처리된 채용공고 google sheet에서 로드\n",
+        "height": 432,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -544,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "1554358e-f118-460b-aea7-995f19ebb2aa",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        608
+      ],
+      "id": "cf789a30-84a6-4b91-ac7b-6190cd065af5",
+      "name": "채용공고 로드",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "2f4BQz6vFzek7asK",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2224,
+        656
+      ],
+      "id": "55890fc9-9123-4ba0-8194-04f0aab492f5",
+      "name": "발송기록 sheet 수정",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 최종 결과 출력\n\nGA를 통해서",
+        "height": 336,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2624,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "9d884472-320c-4ab3-917b-8382499a269c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d440d4c6-5c62-422c-b956-0869663742d6",
+              "leftValue": "={{ $json.application_deadline_date }}",
+              "rightValue": "9999-12-31",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        608
+      ],
+      "id": "166a6aaa-27d1-42f7-9036-e41be493b35f",
+      "name": "수시 채용공고"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA",
+          "mode": "list",
+          "cachedResultName": "job-finder 발송기록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1604641914,
+          "mode": "list",
+          "cachedResultName": "Rolling recruitment",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FNdOSdOE3xgv49ZJFiSroYEXT0DdgUKN18AN2jpKQxA/edit#gid=1604641914"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "job_url"
+          ],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_size",
+              "displayName": "company_size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_title",
+              "displayName": "job_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_position_name",
+              "displayName": "processed_position_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_education_level",
+              "displayName": "processed_education_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_experience_level",
+              "displayName": "processed_experience_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_employment_type",
+              "displayName": "processed_employment_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "processed_language_required",
+              "displayName": "processed_language_required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "application_deadline_date",
+              "displayName": "application_deadline_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "application_deadline_time",
+              "displayName": "application_deadline_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "job_url",
+              "displayName": "job_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "json_file_name",
+              "displayName": "json_file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        96,
+        288
+      ],
+      "id": "63791943-2978-4ce7-96ae-80a899874131",
+      "name": "수시 채용공고 시트에 적재",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "#### 중복 업데이트 방지\nurl이 다른 경우에만 추가하도록 설정함",
+        "height": 96,
+        "width": 182,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "5c1adec9-dce8-4fa2-a874-3458507d7536",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1552,
+        656
+      ],
+      "id": "1d52e013-a2fe-4535-8c0c-284f45b1bdf9",
+      "name": "발송기록 sheet 적재1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "=[공고추천] {{ $('지원자 로드').item.json['성함 '] }}님, 맞춤형 채용공고를 확인해보세요!",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        656
+      ],
+      "id": "83030e7e-856e-42a9-bfdd-fb9a98bf335a",
+      "name": "채용공고 발송",
+      "webhookId": "5246cb07-89a0-429e-9623-59edd6f60b01"
+    },
+    {
+      "parameters": {
+        "content": "#### 데이터 평탄화\n중첩구조를 1행 1공고로 평탄화",
+        "height": 96,
+        "width": 182,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "f741b1e3-f988-4d00-bc31-79aa23cdc494",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## 채용공고에 로고 이미지 붙이기\n\n전처리된 채용공고 google sheet에서 로드\n",
+        "height": 416,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "20e09066-5ee0-4afc-a981-18baa7bbcae7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        704
+      ],
+      "id": "6cf79ac0-500d-4ab2-9b48-b86b4a2becdf",
+      "name": "채용공고 로드1",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "2f4BQz6vFzek7asK",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1248,
+        576
+      ],
+      "id": "142a7b46-2689-4099-99b9-829db8db888b",
+      "name": "기업로고 url가져오기",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "기업명",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1008,
+        624
+      ],
+      "id": "8023d94a-1eff-4841-b5b8-1c5548313e43",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        624
+      ],
+      "id": "bdbcbeba-0a16-40ab-9d8b-46415263bbba",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aRyaGdzY0CF9gGRi",
+          "name": "Google Sheets account_JH"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "채용공고 로드": [
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스증권 Product Owner (AI Data Platform)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=7400593003&srsltid=AfmBOoqrzZ7h1CmsCII1J1MOWt6WorfREbSi8MNYhGsczSgrxCn_2q8u",
+          "json_file_name": "토스증권ProductOwnerAIDataPlatform.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "업스테이지",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "업스테이지 Technical Program Manager",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "인턴",
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.upstage.ai/l/ko/o/technical-program-manager-2025",
+          "json_file_name": "업스테이지TechnicalProgramManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) [인턴] 프로덕트 매니저 어시스턴트",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/288366",
+          "json_file_name": "소크라에이아이뤼이드인턴프로덕트매니저어시스턴트.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "한국딥러닝",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "한국딥러닝 AI 사업계획서/제안서 작성 담당자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/258833",
+          "json_file_name": "한국딥러닝AI사업계획서제안서작성담당자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "보이저엑스",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "보이저엑스 [인턴] 서비스 기획자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/247032",
+          "json_file_name": "보이저엑스인턴서비스기획자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "보이저엑스",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "보이저엑스 서비스 기획자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/141545",
+          "json_file_name": "보이저엑스서비스기획자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "다큐브AI",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "다큐브 AI 서비스 기획",
+          "processed_position_name": [
+            "AI기획자",
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-01-19",
+          "application_deadline_time": "",
+          "job_url": "https://linkareer.com/activity/290572",
+          "json_file_name": "다큐브AI서비스기획.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "뱅크샐러드",
+          "industry": "금융",
+          "company_size": "중소기업",
+          "job_title": "뱅크샐러드 프로덕트 매니저 (PM, Data AI)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://career.rememberapp.co.kr/job/posting/245371",
+          "json_file_name": "뱅크샐러드프로덕트매니저PMDataAI.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 CS AI 서비스 기획 담당자 (5년이상)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7400274/%EC%BF%A0%ED%8C%A1-cs-ai-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%ED%9A%8D-%EB%8B%B4%EB%8B%B9%EC%9E%90-5%EB%85%84%EC%9D%B4%EC%83%81/?gh_jid=7400274",
+          "json_file_name": "쿠팡CSAI서비스기획담당자5년이상.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "씨제이",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "CJ올리브영 AI 전략/기획 담당자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/334742",
+          "json_file_name": "CJ올리브영AI전략기획담당자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "퓨리오사에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "퓨리오사ai Algorithm-AI Research Engineer",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://furiosa.ai/careers/algorithm-ai-research-engineer-2",
+          "json_file_name": "퓨리오사aiAlgorithmAIResearchEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "엘지에이아이연구소",
+          "industry": "IT",
+          "company_size": "대기업",
+          "job_title": "LG ai연구소 Research Scientist/Engineer - EXAONE Lab",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.lgresearch.ai/careers/view?seq=176",
+          "json_file_name": "LGai연구소ResearchScientistEngineerEXAONELab.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코클",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "코클 Research Engineerr",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/316966",
+          "json_file_name": "코클ResearchEngineerr.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "심플랫폼",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "심플랫폼 AI Applied Researcher (Phd 우대·산업용 AI, CV R&D)",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/324820",
+          "json_file_name": "심플랫폼AIAppliedResearcherPhd우대산업용AICVRD.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "리얼월드",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "리얼월드 [인턴] AI & 로보틱스 리서치 및 전략",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/285085",
+          "json_file_name": "리얼월드인턴AI로보틱스리서치및전략.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "뉴로클",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "뉴로클 [전문연구요원] AI 딥러닝 리서치 연구원원",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-01-21",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/333760",
+          "json_file_name": "뉴로클전문연구요원AI딥러닝리서치연구원원.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코그넥스코리아",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "코그넥스코리아 AI Research Scientistt",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/334261",
+          "json_file_name": "코그넥스코리아AIResearchScientistt.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "에어스메디컬",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "에어스메디컬 [SwiftMR] AI Research Scientist",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직",
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/321394",
+          "json_file_name": "에어스메디컬SwiftMRAIResearchScientist.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "메이사",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "메이사 [전문연구요원 가능] AI 리서치 엔지니어",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직",
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/331709",
+          "json_file_name": "메이사전문연구요원가능AI리서치엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "피처링",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "피처링 [R&D 파트] AI 리서치 엔지니어",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/336897",
+          "json_file_name": "피처링RD파트AI리서치엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Scientist (Vision))",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=6673219003&srsltid=AfmBOopMTAU0mSzwLHeqrjNz9RnWj6XUqkN3VM3jao4L0rd_ClkfHh2Y",
+          "json_file_name": "토스DataScientistVision.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "퓨리오사에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "퓨리오사ai Software - AI Software Engineer (Platform Software)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://furiosa.ai/careers/ai-software-engineer-platform-sw",
+          "json_file_name": "퓨리오사aiSoftwareAISoftwareEngineerPlatformSoftware.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "카카오",
+          "industry": "IT",
+          "company_size": "대기업",
+          "job_title": "카카오 Machine Learning Engineer (Search) (신입)",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.kakao.com/jobs/P-14286",
+          "json_file_name": "카카오MachineLearningEngineerSearch신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 [Search & Discovery] Staff, Machine Learning Engineer (Ranking/Recommendations)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/6390396/search-discovery-sr-staff-machine-learning-engineer-rankingrecommendations/",
+          "json_file_name": "쿠팡SearchDiscoveryStaffMachineLearningEngineerRankingRecommendations.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "몰로코",
+          "industry": "IT",
+          "company_size": "중견기업",
+          "job_title": "몰로코 Machine Learning Engineer (머신러닝 엔지니어-전문연구요원))",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://job-boards.greenhouse.io/moloco/jobs/6245366003",
+          "json_file_name": "몰로코MachineLearningEngineer머신러닝엔지니어전문연구요원.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) AI engineer (AI Agent)(신입)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335745",
+          "json_file_name": "소크라에이아이뤼이드AIengineerAIAgent신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "마키나락스",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "마키나락스 [인턴] Forward Deployed Engineer - Visionn",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335671",
+          "json_file_name": "마키나락스인턴ForwardDeployedEngineerVisionn.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Staff, Machine Learning Engineer - Coupang Play",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7471082/staff-machine-learning-engineer-coupang-play/?gh_jid=7471082",
+          "json_file_name": "쿠팡StaffMachineLearningEngineerCoupangPlay.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "와드",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "와드 ML 엔지니어",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335066",
+          "json_file_name": "와드ML엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "부릉",
+          "industry": "유통 및 커머스",
+          "company_size": "중소기업",
+          "job_title": "부릉 ML 엔지니어",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/332765",
+          "json_file_name": "부릉ML엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=4071103003&srsltid=AfmBOoq2__YoVUTbagqMx8bzpl6RahGlWf6qy0FiXP8H9QDWQtjmiVbA&sub_position_id=4071103003&company=%ED%86%A0%EC%8A%A4",
+          "json_file_name": "토스DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "업스테이지",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "업스테이지 AI Product Data Manager",
+          "processed_position_name": [
+            "데이터엔지니어",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.upstage.ai/o/ai-product-data-manager?lang=ko",
+          "json_file_name": "업스테이지AIProductDataManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "페이타랩",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "페이타랩 [주니어] 데이터 엔지니어 (Growth Data Engineer), 서울",
+          "processed_position_name": [
+            "데이터엔지니어",
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/321821",
+          "json_file_name": "페이타랩주니어데이터엔지니어GrowthDataEngineer서울.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "카운터포인트리서치",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "카운터포인트리서치 [인턴] 데이터 엔지니어",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335265",
+          "json_file_name": "카운터포인트리서치인턴데이터엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) [Socra AI] Data Engineer (신입)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/324954",
+          "json_file_name": "소크라에이아이뤼이드SocraAIDataEngineer신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스페이먼츠 Data Engineerr",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/308963",
+          "json_file_name": "토스페이먼츠DataEngineerr.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코클",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "코클 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/337066",
+          "json_file_name": "코클DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Engineer (Platform Biz Intelligence)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7259231/senior-data-engineer-platform-biz-intelligence/?gh_jid=7259231",
+          "json_file_name": "쿠팡SeniorDataEngineerPlatformBizIntelligence.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Staff Data Engineer (Data Platform)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7508476/staff-data-engineer-data-platform/?gh_jid=7508476",
+          "json_file_name": "쿠팡StaffDataEngineerDataPlatform.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "라이너",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "라이너 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/322910",
+          "json_file_name": "라이너DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Analyst",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-02-18",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=6619401003&srsltid=AfmBOop7A74gtNMNGkduMWWSKeRsIb4zLwjz__3knEzZy-dXtV06FZUl&sub_position_id=6619401003&company=%ED%86%A0%EC%8A%A4",
+          "json_file_name": "토스DataAnalyst.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스플레이스 DataOps Manager",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=5962232003&srsltid=AfmBOop8vkOp4g4_I2q2iMoKYSvB9EcQmozG1_5dHPcaAmu2BTbU-YR0",
+          "json_file_name": "토스플레이스DataOpsManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "에이블리코퍼레이션",
+          "industry": "유통 및 커머스",
+          "company_size": "중소기업",
+          "job_title": "에이블리코퍼레이션 데이터 분석가",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/102064",
+          "json_file_name": "에이블리코퍼레이션데이터분석가.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "클래스101",
+          "industry": "교육",
+          "company_size": "중소기업",
+          "job_title": "클래스101 [인턴] Data Analystt",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/330552",
+          "json_file_name": "클래스101인턴DataAnalystt.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "페이타랩",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "페이타랩(패스오더) 데이터 분석가 (Growth Data Analyst), 부산",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/249290",
+          "json_file_name": "페이타랩패스오더데이터분석가GrowthDataAnalyst부산.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "넛지헬스케어",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "넛지헬스케어(캐시워크) 데이터분석가",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/157552",
+          "json_file_name": "넛지헬스케어캐시워크데이터분석가.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "슈퍼센트",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "슈퍼센트 데이터 애널리스트 (마케팅 전략))",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335724",
+          "json_file_name": "슈퍼센트데이터애널리스트마케팅전략.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Analyst (Coupang Eats)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7057825/senior-data-analyst-coupang-eats/?gh_jid=7057825",
+          "json_file_name": "쿠팡SeniorDataAnalystCoupangEats.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Analyst (Fresh SCM)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7464054/senior-data-analyst-fresh-scm/?gh_jid=7464054",
+          "json_file_name": "쿠팡SeniorDataAnalystFreshSCM.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "바로팜",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "바로팜 [비알피커넥트] 데이터 분석가 (계약직)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "계약직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/336171",
+          "json_file_name": "바로팜비알피커넥트데이터분석가계약직.json"
+        }
+      }
+    ],
+    "채용공고 로드1": [
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스증권 Product Owner (AI Data Platform)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=7400593003&srsltid=AfmBOoqrzZ7h1CmsCII1J1MOWt6WorfREbSi8MNYhGsczSgrxCn_2q8u",
+          "json_file_name": "토스증권ProductOwnerAIDataPlatform.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "업스테이지",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "업스테이지 Technical Program Manager",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "인턴",
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.upstage.ai/l/ko/o/technical-program-manager-2025",
+          "json_file_name": "업스테이지TechnicalProgramManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) [인턴] 프로덕트 매니저 어시스턴트",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/288366",
+          "json_file_name": "소크라에이아이뤼이드인턴프로덕트매니저어시스턴트.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "한국딥러닝",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "한국딥러닝 AI 사업계획서/제안서 작성 담당자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/258833",
+          "json_file_name": "한국딥러닝AI사업계획서제안서작성담당자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "보이저엑스",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "보이저엑스 [인턴] 서비스 기획자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/247032",
+          "json_file_name": "보이저엑스인턴서비스기획자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "보이저엑스",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "보이저엑스 서비스 기획자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/141545",
+          "json_file_name": "보이저엑스서비스기획자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "다큐브AI",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "다큐브 AI 서비스 기획",
+          "processed_position_name": [
+            "AI기획자",
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-01-19",
+          "application_deadline_time": "",
+          "job_url": "https://linkareer.com/activity/290572",
+          "json_file_name": "다큐브AI서비스기획.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "뱅크샐러드",
+          "industry": "금융",
+          "company_size": "중소기업",
+          "job_title": "뱅크샐러드 프로덕트 매니저 (PM, Data AI)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://career.rememberapp.co.kr/job/posting/245371",
+          "json_file_name": "뱅크샐러드프로덕트매니저PMDataAI.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 CS AI 서비스 기획 담당자 (5년이상)",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7400274/%EC%BF%A0%ED%8C%A1-cs-ai-%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%ED%9A%8D-%EB%8B%B4%EB%8B%B9%EC%9E%90-5%EB%85%84%EC%9D%B4%EC%83%81/?gh_jid=7400274",
+          "json_file_name": "쿠팡CSAI서비스기획담당자5년이상.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "씨제이",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "CJ올리브영 AI 전략/기획 담당자",
+          "processed_position_name": [
+            "AI기획자"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/334742",
+          "json_file_name": "CJ올리브영AI전략기획담당자.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "퓨리오사에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "퓨리오사ai Algorithm-AI Research Engineer",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://furiosa.ai/careers/algorithm-ai-research-engineer-2",
+          "json_file_name": "퓨리오사aiAlgorithmAIResearchEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "엘지에이아이연구소",
+          "industry": "IT",
+          "company_size": "대기업",
+          "job_title": "LG ai연구소 Research Scientist/Engineer - EXAONE Lab",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.lgresearch.ai/careers/view?seq=176",
+          "json_file_name": "LGai연구소ResearchScientistEngineerEXAONELab.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코클",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "코클 Research Engineerr",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/316966",
+          "json_file_name": "코클ResearchEngineerr.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "심플랫폼",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "심플랫폼 AI Applied Researcher (Phd 우대·산업용 AI, CV R&D)",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/324820",
+          "json_file_name": "심플랫폼AIAppliedResearcherPhd우대산업용AICVRD.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "리얼월드",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "리얼월드 [인턴] AI & 로보틱스 리서치 및 전략",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/285085",
+          "json_file_name": "리얼월드인턴AI로보틱스리서치및전략.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "뉴로클",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "뉴로클 [전문연구요원] AI 딥러닝 리서치 연구원원",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-01-21",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/333760",
+          "json_file_name": "뉴로클전문연구요원AI딥러닝리서치연구원원.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코그넥스코리아",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "코그넥스코리아 AI Research Scientistt",
+          "processed_position_name": [
+            "AI리서치"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/334261",
+          "json_file_name": "코그넥스코리아AIResearchScientistt.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "에어스메디컬",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "에어스메디컬 [SwiftMR] AI Research Scientist",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직",
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/321394",
+          "json_file_name": "에어스메디컬SwiftMRAIResearchScientist.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "메이사",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "메이사 [전문연구요원 가능] AI 리서치 엔지니어",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직",
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/331709",
+          "json_file_name": "메이사전문연구요원가능AI리서치엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "피처링",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "피처링 [R&D 파트] AI 리서치 엔지니어",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/336897",
+          "json_file_name": "피처링RD파트AI리서치엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Scientist (Vision))",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=6673219003&srsltid=AfmBOopMTAU0mSzwLHeqrjNz9RnWj6XUqkN3VM3jao4L0rd_ClkfHh2Y",
+          "json_file_name": "토스DataScientistVision.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "퓨리오사에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "퓨리오사ai Software - AI Software Engineer (Platform Software)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://furiosa.ai/careers/ai-software-engineer-platform-sw",
+          "json_file_name": "퓨리오사aiSoftwareAISoftwareEngineerPlatformSoftware.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "카카오",
+          "industry": "IT",
+          "company_size": "대기업",
+          "job_title": "카카오 Machine Learning Engineer (Search) (신입)",
+          "processed_position_name": [
+            "AI리서치",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.kakao.com/jobs/P-14286",
+          "json_file_name": "카카오MachineLearningEngineerSearch신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 [Search & Discovery] Staff, Machine Learning Engineer (Ranking/Recommendations)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/6390396/search-discovery-sr-staff-machine-learning-engineer-rankingrecommendations/",
+          "json_file_name": "쿠팡SearchDiscoveryStaffMachineLearningEngineerRankingRecommendations.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "몰로코",
+          "industry": "IT",
+          "company_size": "중견기업",
+          "job_title": "몰로코 Machine Learning Engineer (머신러닝 엔지니어-전문연구요원))",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "전문연"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://job-boards.greenhouse.io/moloco/jobs/6245366003",
+          "json_file_name": "몰로코MachineLearningEngineer머신러닝엔지니어전문연구요원.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) AI engineer (AI Agent)(신입)",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335745",
+          "json_file_name": "소크라에이아이뤼이드AIengineerAIAgent신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "마키나락스",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "마키나락스 [인턴] Forward Deployed Engineer - Visionn",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335671",
+          "json_file_name": "마키나락스인턴ForwardDeployedEngineerVisionn.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Staff, Machine Learning Engineer - Coupang Play",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7471082/staff-machine-learning-engineer-coupang-play/?gh_jid=7471082",
+          "json_file_name": "쿠팡StaffMachineLearningEngineerCoupangPlay.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "와드",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "와드 ML 엔지니어",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335066",
+          "json_file_name": "와드ML엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "부릉",
+          "industry": "유통 및 커머스",
+          "company_size": "중소기업",
+          "job_title": "부릉 ML 엔지니어",
+          "processed_position_name": [
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/332765",
+          "json_file_name": "부릉ML엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=4071103003&srsltid=AfmBOoq2__YoVUTbagqMx8bzpl6RahGlWf6qy0FiXP8H9QDWQtjmiVbA&sub_position_id=4071103003&company=%ED%86%A0%EC%8A%A4",
+          "json_file_name": "토스DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "업스테이지",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "업스테이지 AI Product Data Manager",
+          "processed_position_name": [
+            "데이터엔지니어",
+            "ML엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://careers.upstage.ai/o/ai-product-data-manager?lang=ko",
+          "json_file_name": "업스테이지AIProductDataManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "페이타랩",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "페이타랩 [주니어] 데이터 엔지니어 (Growth Data Engineer), 서울",
+          "processed_position_name": [
+            "데이터엔지니어",
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/321821",
+          "json_file_name": "페이타랩주니어데이터엔지니어GrowthDataEngineer서울.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "카운터포인트리서치",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "카운터포인트리서치 [인턴] 데이터 엔지니어",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335265",
+          "json_file_name": "카운터포인트리서치인턴데이터엔지니어.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "소크라에이아이",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "소크라에이아이(뤼이드) [Socra AI] Data Engineer (신입)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/324954",
+          "json_file_name": "소크라에이아이뤼이드SocraAIDataEngineer신입.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스페이먼츠 Data Engineerr",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/308963",
+          "json_file_name": "토스페이먼츠DataEngineerr.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "코클",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "코클 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "1",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/337066",
+          "json_file_name": "코클DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Engineer (Platform Biz Intelligence)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7259231/senior-data-engineer-platform-biz-intelligence/?gh_jid=7259231",
+          "json_file_name": "쿠팡SeniorDataEngineerPlatformBizIntelligence.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Staff Data Engineer (Data Platform)",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7508476/staff-data-engineer-data-platform/?gh_jid=7508476",
+          "json_file_name": "쿠팡StaffDataEngineerDataPlatform.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "라이너",
+          "industry": "IT",
+          "company_size": "중소기업",
+          "job_title": "라이너 Data Engineer",
+          "processed_position_name": [
+            "데이터엔지니어"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/322910",
+          "json_file_name": "라이너DataEngineer.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스 Data Analyst",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "2026-02-18",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=6619401003&srsltid=AfmBOop7A74gtNMNGkduMWWSKeRsIb4zLwjz__3knEzZy-dXtV06FZUl&sub_position_id=6619401003&company=%ED%86%A0%EC%8A%A4",
+          "json_file_name": "토스DataAnalyst.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "비바리퍼블리카",
+          "industry": "금융",
+          "company_size": "중견기업",
+          "job_title": "토스플레이스 DataOps Manager",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://toss.im/career/job-detail?job_id=5962232003&srsltid=AfmBOop8vkOp4g4_I2q2iMoKYSvB9EcQmozG1_5dHPcaAmu2BTbU-YR0",
+          "json_file_name": "토스플레이스DataOpsManager.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "에이블리코퍼레이션",
+          "industry": "유통 및 커머스",
+          "company_size": "중소기업",
+          "job_title": "에이블리코퍼레이션 데이터 분석가",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/102064",
+          "json_file_name": "에이블리코퍼레이션데이터분석가.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "클래스101",
+          "industry": "교육",
+          "company_size": "중소기업",
+          "job_title": "클래스101 [인턴] Data Analystt",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "신입",
+          "processed_employment_type": [
+            "인턴"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/330552",
+          "json_file_name": "클래스101인턴DataAnalystt.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "페이타랩",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "페이타랩(패스오더) 데이터 분석가 (Growth Data Analyst), 부산",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/249290",
+          "json_file_name": "페이타랩패스오더데이터분석가GrowthDataAnalyst부산.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "넛지헬스케어",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "넛지헬스케어(캐시워크) 데이터분석가",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/157552",
+          "json_file_name": "넛지헬스케어캐시워크데이터분석가.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "슈퍼센트",
+          "industry": "기타",
+          "company_size": "중소기업",
+          "job_title": "슈퍼센트 데이터 애널리스트 (마케팅 전략))",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력무관",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/335724",
+          "json_file_name": "슈퍼센트데이터애널리스트마케팅전략.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Analyst (Coupang Eats)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7057825/senior-data-analyst-coupang-eats/?gh_jid=7057825",
+          "json_file_name": "쿠팡SeniorDataAnalystCoupangEats.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "쿠팡",
+          "industry": "유통 및 커머스",
+          "company_size": "대기업",
+          "job_title": "쿠팡 Senior Data Analyst (Fresh SCM)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": [
+            "학사",
+            "석사",
+            "박사"
+          ],
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "정규직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.coupang.jobs/kr/jobs/7464054/senior-data-analyst-fresh-scm/?gh_jid=7464054",
+          "json_file_name": "쿠팡SeniorDataAnalystFreshSCM.json"
+        }
+      },
+      {
+        "json": {
+          "company_name": "바로팜",
+          "industry": "바이오 및 의료",
+          "company_size": "중소기업",
+          "job_title": "바로팜 [비알피커넥트] 데이터 분석가 (계약직)",
+          "processed_position_name": [
+            "데이터분석가"
+          ],
+          "processed_education_level": "학력무관",
+          "processed_experience_level": "경력",
+          "processed_employment_type": [
+            "계약직"
+          ],
+          "processed_language_required": "0",
+          "application_deadline_date": "9999-12-31",
+          "application_deadline_time": "",
+          "job_url": "https://www.wanted.co.kr/wd/336171",
+          "json_file_name": "바로팜비알피커넥트데이터분석가계약직.json"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "지원자 로드": {
+      "main": [
+        [
+          {
+            "node": "매칭 필터링",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "매칭 필터링": {
+      "main": [
+        [
+          {
+            "node": "발송기록 데이터 평탄화",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "이메일 템플릿 생성": {
+      "main": [
+        [
+          {
+            "node": "채용공고 발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발송기록 데이터 평탄화": {
+      "main": [
+        [
+          {
+            "node": "발송기록 sheet 적재",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "채용공고 로드": {
+      "main": [
+        [
+          {
+            "node": "수시 채용공고",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "수시 채용공고": {
+      "main": [
+        [
+          {
+            "node": "수시 채용공고 시트에 적재",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "지원자 로드",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발송기록 sheet 적재1": {
+      "main": [
+        [
+          {
+            "node": "이메일 템플릿 생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "채용공고 발송": {
+      "main": [
+        [
+          {
+            "node": "발송기록 sheet 수정",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "채용공고 로드1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "기업로고 url가져오기": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "49954ae7-3c9d-4c8d-b0ce-6a0453b98359",
+  "meta": {
+    "instanceId": "821b790ee90d0166375ac64457e2b5e4d0b401233ff058856ffbade878fa6ef0"
+  },
+  "id": "sB0IFCPagPjmvMk1",
+  "tags": []
+}
